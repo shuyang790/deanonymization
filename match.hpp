@@ -15,6 +15,7 @@
 #include <math.h>
 #include <map>
 #include <time.h>
+#include <algorithm>
 
 #define ALPHA1 1
 #define BETA1 1
