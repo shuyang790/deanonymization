@@ -36,8 +36,8 @@ static threadpool thpool;
 class matcher {
 private:
 	int num_ans_pairs;
-	class graph & G_a;
-	class graph & G;
+	class graph * G_a;
+	class graph * G;
 
 	typedef int all_node_pairs[MAX_NODES][MAX_NODES];
 
@@ -61,7 +61,7 @@ private:
 	vector<match_edge> ans_pairs;
 
 public:
-	matcher(class graph &g_a, class graph &g, int _num_ans_pairs = 1000);
+	matcher(class graph *g_a, class graph *g, int _num_ans_pairs = 1000);
 	
 	void match();
 	

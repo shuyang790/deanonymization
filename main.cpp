@@ -7,6 +7,7 @@
 //
 
 #include <iostream>
+#include "graph.hpp"
 #include "match.hpp"
 
 int main(int argc, const char * argv[]) {
@@ -17,10 +18,10 @@ int main(int argc, const char * argv[]) {
 	graph G_a("graphTarget.txt");
 	graph G("graph1.txt");
 	
-	matcher M(G_a, G);
-	M.match();
+	matcher M(&G_a, &G, 1000);
+//	M.match();
 	
-	M.print(stdout);
+//	M.print(stdout);
 	
     return 0;
 }

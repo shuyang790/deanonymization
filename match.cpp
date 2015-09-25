@@ -12,19 +12,19 @@ int int_abs(int x){
 	return x < 0 ? -x : x;
 }
 
-matcher::matcher(class graph &g_a, class graph &g, int _num_ans_pairs): G_a(g_a), G(g), num_ans_pairs(_num_ans_pairs){
-	for (vector<int> ::iterator i=g_a.nodes.begin(); i!=g_a.nodes.end(); i++) {
-		for (vector<int> ::iterator j=g.nodes.begin(); j!=g.nodes.end(); j++) {
-			sim_nodes[*i][*j] = 1;
-			sim_subgraphs[*i][*j] = 1;
+matcher::matcher(class graph * g_a, class graph * g, int _num_ans_pairs): G_a(g_a), G(g), num_ans_pairs(_num_ans_pairs){
+	printf(".\n");
+	for (int i=1; i<=g_a->num_nodes; i++)
+		for (int j=1; j<=g->num_nodes; j++){
+			sim_nodes[i][j] = 1;
+			sim_subgraphs[i][j] = 1;
 		}
-	}
 }
 
 int matcher::calc_sim_nodes(int u, int v) {
 	int w1 = 0;
-	vector<int> * nb_a = G_a.extract_neighbors(u);
-	vector<int> * nb = G.extract_neighbors(v);
+	vector<int> * nb_a = G_a->extract_neighbors(u);
+	vector<int> * nb = G->extract_neighbors(v);
 	
 	vector <match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
@@ -48,8 +48,8 @@ int matcher::calc_sim_nodes(int u, int v) {
 }
 
 int matcher::calc_sim_subgraphs(int u, int v) {
-	graph::subgraph subg_a = G_a.extract_subgraph(u);
-	graph::subgraph subg = G.extract_subgraph(v);
+	graph::subgraph subg_a = G_a->extract_subgraph(u);
+	graph::subgraph subg = G->extract_subgraph(v);
 	
 	int w1 = 0; // node sequence
 	for (int i=0; i<L; i++) {
@@ -95,7 +95,7 @@ void  * calc_sim_subgraphs_pthread(void * args) {
 void matcher::match() {
 	clock_t time_start = clock();
 	int cT;
-	double sum=G_a.num_nodes*G.num_nodes, sum_last;
+	double sum = G_a->num_nodes * G->num_nodes, sum_last;
 	
 	thpool = thpool_init(THREAD_POOL_SIZE);
 	
@@ -105,8 +105,8 @@ void matcher::match() {
 		sum_last = sum;
 
 		// update similarities for every pair of nodes
-		for (int i=1; i<=G_a.num_nodes; i++)
-			for (int j=1; j<=G.num_nodes; j++){
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++){
 				int ** t = new int* [2];
 				t[0] = new int[2];
 				t[0][0] = i, t[0][1] = j;
@@ -115,8 +115,8 @@ void matcher::match() {
 			}
 		thpool_wait(thpool);
 
-		for (int i=1; i<=G_a.num_nodes; i++)
-			for (int j=1; j<=G.num_nodes; j++){
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++){
 				int ** t = new int* [2];
 				t[0] = new int[2];
 				t[0][0] = i, t[0][1] = j;
@@ -126,15 +126,15 @@ void matcher::match() {
 		thpool_wait(thpool);
 
 		sum = 0;
-		for (vector<int> ::iterator i=G_a.nodes.begin(); i!=G_a.nodes.end(); i++) {
-			for (vector<int> ::iterator j=G.nodes.begin(); j!=G.nodes.end(); j++) {
+		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
+			for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
 				sum += int_abs(sim_nodes[*i][*j]);
 			}
 		}
 		// check if converge(normalized)
 		// TODO: normalization
-		for (vector<int> ::iterator i=G_a.nodes.begin(); i!=G_a.nodes.end(); i++) {
-			for (vector<int> ::iterator j=G.nodes.begin(); j!=G.nodes.end(); j++) {
+		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
+			for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
 				if (fabs(sim_nodes_last[*i][*j]/sum_last - sim_nodes[*i][*j]/sum) > eps) {
 					goto next_round;
 				}
@@ -149,8 +149,8 @@ void matcher::match() {
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
 	memset(flag_a, 0, MAX_NODES);
 	memset(flag, 0, MAX_NODES);
-	for (vector<int> ::iterator i=G_a.nodes.begin(); i!=G_a.nodes.end(); i++) {
-		for (vector<int> ::iterator j=G.nodes.begin(); j!=G.nodes.end(); j++) {
+	for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
+		for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
 			match_edges.push_back(match_edge(*i, *j, sim_nodes[*i][*j]));
 		}
 	}
