@@ -42,8 +42,9 @@ graph::subgraph graph::extract_subgraph(int node){
 	re.num_nodes = 1;
 	
 	queue<int> Q;
-	set<int> flag;
-	flag.insert(node);
+	int * flag = new int[MAX_NODES];
+	memset(flag, 0, sizeof(int) * MAX_NODES);
+	flag[node]=1;
 	Q.push(node);
 	for (int i=0, last_cnt = 1; i<L; i++) {
 		int cnt = 0;
@@ -52,8 +53,8 @@ graph::subgraph graph::extract_subgraph(int node){
 			int cur = Q.front();
 			Q.pop();
 			for (vector<int> :: iterator it=edges[cur]->begin(); it!=edges[cur]->end(); it++) {
-				if (flag.find(*it) == flag.end()) {
-					flag.insert(*it);
+				if (!flag[*it]) {
+					flag[*it] = 1;
 					Q.push(*it);
 					re.nodes_per_level[i].push_back(*it);
 					cnt++;
@@ -63,5 +64,6 @@ graph::subgraph graph::extract_subgraph(int node){
 		re.num_nodes_seq.push_back(cnt);
 		last_cnt = cnt;
 	}
+	delete []flag;
 	return re;
 }

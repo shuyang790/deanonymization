@@ -10,6 +10,7 @@
 #define match_hpp
 
 #include "graph.hpp"
+#include "thpool.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -22,20 +23,32 @@
 #define ALPHA2 1
 #define BETA2 1
 
+#define THREAD_POOL_SIZE 4
+
 using namespace std;
 
 const double eps = 1;
 
-int abs(int);
+int int_abs(int);
+
+static threadpool thpool;
 
 class matcher {
 private:
 	int num_ans_pairs;
 	class graph & G_a;
 	class graph & G;
-	map< pair<int, int>, int> sim_nodes; // x_a, x, sim
-	map< pair<int, int>, int> sim_nodes_last;
-	map< pair<int, int>, int> sim_subgraphs; // x_a, x, sim(subgraph(x_a), subgraph(x))
+
+	typedef int all_node_pairs[MAX_NODES][MAX_NODES];
+
+
+	all_node_pairs sim_nodes;
+	all_node_pairs sim_nodes_last;
+	all_node_pairs sim_subgraphs;
+
+	//map< pair<int, int>, int> sim_nodes; // x_a, x, sim
+	//map< pair<int, int>, int> sim_nodes_last;
+	//map< pair<int, int>, int> sim_subgraphs; // x_a, x, sim(subgraph(x_a), subgraph(x))
 	
 	struct match_edge {
 		int u, v, w;
@@ -46,16 +59,19 @@ private:
 	};
 	
 	vector<match_edge> ans_pairs;
-	
+
 public:
 	matcher(class graph &g_a, class graph &g, int _num_ans_pairs = 1000);
+	
+	void match();
 	
 	int calc_sim_nodes(int u, int v); // u from G_a, v from G
 	int calc_sim_subgraphs(int u, int v); // u, v are centers and from G_a, G perspectively
 	
-	void match();
-	
 	void print(FILE *ou);
 };
+
+void * calc_sim_nodes_pthread(void * args);
+void * calc_sim_subgraphs_pthread(void * args);
 
 #endif /* match_hpp */

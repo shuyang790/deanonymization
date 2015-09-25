@@ -15,6 +15,8 @@
 #include <set>
 #include <queue>
 
+#define MAX_NODES 8000
+
 #define L 2
 
 using namespace std;

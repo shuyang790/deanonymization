@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <time.h> 
 
-#include "thpool.h"
+#include "thpool.hpp"
 
 #ifdef THPOOL_DEBUG
 #define THPOOL_DEBUG 1
@@ -311,7 +311,7 @@ static void thread_init (thpool_* thpool_p, struct thread** thread_p, int id){
 	(*thread_p)->thpool_p = thpool_p;
 	(*thread_p)->id       = id;
 
-	pthread_create(&(*thread_p)->pthread, NULL, (void *)thread_do, (*thread_p));
+	pthread_create(&(*thread_p)->pthread, NULL, (void *(*)(void *))thread_do, (*thread_p));
 	pthread_detach((*thread_p)->pthread);
 	
 }
@@ -341,7 +341,7 @@ static void* thread_do(struct thread* thread_p){
 	
 	/* Register signal handler */
 	struct sigaction act;
-	act.sa_handler = thread_hold;
+	act.sa_handler = (void (*)(int))thread_hold;
 	if (sigaction(SIGUSR1, &act, NULL) == -1) {
 		fprintf(stderr, "thread_do(): cannot handle SIGUSR1");
 	}

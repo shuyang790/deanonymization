@@ -1,7 +1,7 @@
 CC = g++
-CFLAG = -O3
+CFLAG = -g -pthread
 EXE = main
-OBJ = main.o match.o graph.o
+OBJ = main.o match.o graph.o thpool.o
 
 $(EXE): $(OBJ)
 	$(CC) -o $(EXE) $(OBJ) $(CFLAG)
@@ -9,11 +9,11 @@ $(EXE): $(OBJ)
 main.o: main.cpp match.hpp 
 	$(CC) -c main.cpp $(CFLAG)
 
-match.o: match.cpp match.hpp graph.hpp C-Thread-Pool/thpool.hpp
+match.o: match.cpp match.hpp graph.hpp thpool.hpp
 	$(CC) -c match.cpp $(CFLAG)
 
-thpool.o: C-Thread-Pool/thpool.cpp C-Thread-Pool/thpool.hpp
-	$(CC) -c C-Thread-Pool/thpool.cpp $(CFLAG)
+thpool.o: thpool.cpp thpool.hpp
+	$(CC) -c thpool.cpp $(CFLAG)
 
 graph.o: graph.cpp graph.hpp
 	$(CC) -c graph.cpp $(CFLAG)
