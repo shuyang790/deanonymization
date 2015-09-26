@@ -44,6 +44,8 @@ int matcher::calc_sim_nodes(int u, int v) {
 	delete []flag_a;
 	delete []flag;
 	int w2 = sim_subgraphs[u][v];
+	if (u%1000==0)
+		fprintf(stderr, "sim_nodes(%d, %d) = %d\n", u, v, ALPHA1 * w1 + BETA1 * w2);
 	return  sim_nodes[u][v] = ALPHA1 * w1 + BETA1 * w2;
 }
 
@@ -77,6 +79,8 @@ int matcher::calc_sim_subgraphs(int u, int v) {
 	}
 	delete []flag_a;
 	delete []flag;
+	if (u%1000==0)
+		fprintf(stderr, "sim_subgraphs(%d, %d) = %d\n", u, v, ALPHA2 * w1 + BETA2 * w2);
 	return sim_subgraphs[u][v] = ALPHA2 * w1 + BETA2 * w2;
 }
 

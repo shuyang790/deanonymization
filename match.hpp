@@ -12,6 +12,7 @@
 #include "graph.hpp"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <map>
 #include <time.h>
@@ -26,7 +27,7 @@
 
 #if MULTITHREAD
 #include "thpool.hpp"
-#define THREAD_POOL_SIZE 4
+#define THREAD_POOL_SIZE 12
 #endif
 
 using namespace std;

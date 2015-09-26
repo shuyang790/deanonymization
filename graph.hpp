@@ -11,11 +11,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
 #include <set>
 #include <queue>
 
-#define MAX_NODES 8000
+#define MAX_NODES 7700
 
 #define L 2
 
