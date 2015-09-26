@@ -19,9 +19,9 @@ int main(int argc, const char * argv[]) {
 	graph G("graph1.txt");
 	
 	matcher M(&G_a, &G, 1000);
-//	M.match();
+	M.match();
 	
-//	M.print(stdout);
+	M.print(stdout);
 	
     return 0;
 }

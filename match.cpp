@@ -80,6 +80,7 @@ int matcher::calc_sim_subgraphs(int u, int v) {
 	return sim_subgraphs[u][v] = ALPHA2 * w1 + BETA2 * w2;
 }
 
+#if MULTITHREAD
 void * calc_sim_nodes_pthread(void * args) {
 	int * t = ((int**)args)[0];
 	((struct matcher *)(((int**)args)[1]))->calc_sim_nodes(t[0], t[1]);
@@ -91,14 +92,17 @@ void  * calc_sim_subgraphs_pthread(void * args) {
 	((struct matcher *)(((int**)args)[1]))->calc_sim_subgraphs(t[0], t[1]);
 	return NULL;
 }
+#endif
 
 void matcher::match() {
 	clock_t time_start = clock();
 	int cT;
 	double sum = G_a->num_nodes * G->num_nodes, sum_last;
 	
+#if MULTITHREAD
 	thpool = thpool_init(THREAD_POOL_SIZE);
-	
+#endif
+
 	for (cT=0; ++cT; ) {
 		// copy to sim_nodes_last
 		memcpy(sim_nodes_last, sim_nodes, sizeof(sim_nodes));
@@ -107,23 +111,35 @@ void matcher::match() {
 		// update similarities for every pair of nodes
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
+#if MULTITHREAD
 				int ** t = new int* [2];
 				t[0] = new int[2];
 				t[0][0] = i, t[0][1] = j;
 				t[1] = (int*)this;
 				thpool_add_work(thpool, (calc_sim_nodes_pthread), (void *)t);
+#else
+				calc_sim_nodes(i, j);
+#endif
 			}
+#if MULTITHREAD
 		thpool_wait(thpool);
+#endif
 
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
+#if MULTITHREAD
 				int ** t = new int* [2];
 				t[0] = new int[2];
 				t[0][0] = i, t[0][1] = j;
 				t[1] = (int*)this;
 				thpool_add_work(thpool, calc_sim_subgraphs_pthread, (void *)t);
+#else
+				calc_sim_subgraphs(i, j);
+#endif
 			}
+#if MULTITHREAD
 		thpool_wait(thpool);
+#endif
 
 		sum = 0;
 		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {

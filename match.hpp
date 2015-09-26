@@ -10,7 +10,6 @@
 #define match_hpp
 
 #include "graph.hpp"
-#include "thpool.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -23,7 +22,12 @@
 #define ALPHA2 1
 #define BETA2 1
 
+#define MULTITHREAD 1
+
+#if MULTITHREAD
+#include "thpool.hpp"
 #define THREAD_POOL_SIZE 4
+#endif
 
 using namespace std;
 
@@ -31,7 +35,9 @@ const double eps = 1;
 
 int int_abs(int);
 
+#if MULTITHREAD
 static threadpool thpool;
+#endif
 
 class matcher {
 private:
@@ -71,7 +77,9 @@ public:
 	void print(FILE *ou);
 };
 
+#if MULTITHREAD
 void * calc_sim_nodes_pthread(void * args);
 void * calc_sim_subgraphs_pthread(void * args);
+#endif
 
 #endif /* match_hpp */
