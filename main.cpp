@@ -12,11 +12,8 @@
 
 int main(int argc, const char * argv[]) {
 	
-	//graph G_a("anonymized.txt");
-	//graph G("crawled.txt");
-	
-	graph G_a("graphTarget.txt");
-	graph G("graph1.txt");
+	graph G_a("data/50\%/anonymized.txt");
+	graph G("data/50\%/crawled.txt");
 	
 	matcher *M = new matcher(&G_a, &G, 1000);
 	M->match();
