@@ -15,6 +15,7 @@
 #include <vector>
 #include <set>
 #include <queue>
+#include <algorithm>
 
 #define MAX_NODES 10010
 
@@ -28,6 +29,7 @@ private:
 	int num_edges;
 	vector <int> nodes;
 	vector < vector<int> * > edges;
+	vector < vector<int> * > rev_edges;
 	
 	struct subgraph {
 		int num_nodes;
@@ -35,11 +37,14 @@ private:
 		vector<int> num_nodes_seq;
 		vector<int> nodes_per_level[L];
 	};
+
+	vector <int> * neighbors[MAX_NODES];
+	subgraph * subgraphs[MAX_NODES];
 	
 public:
 	graph(const char * file_name);
 	
-	subgraph extract_subgraph(int node);
+	subgraph * extract_subgraph(int node);
 	vector<int> * extract_neighbors(int node);
 	
 	friend class matcher;
