@@ -18,6 +18,8 @@
 #include <time.h>
 #include <algorithm>
 
+#define MAX_ROUNDS 5
+
 #define ALPHA1 1
 #define BETA1 1
 #define ALPHA2 1
