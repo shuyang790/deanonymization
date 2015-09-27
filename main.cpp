@@ -12,13 +12,13 @@
 
 int main(int argc, const char * argv[]) {
 	
-	graph G_a("anonymized.txt");
-	graph G("crawled.txt");
+	//graph G_a("anonymized.txt");
+	//graph G("crawled.txt");
 
-	//graph G_a("data/50\%/anonymized.txt");
-	//graph G("data/50\%/crawled.txt");
+	graph G_a("data/50_small/anonymized.txt");
+	graph G("data/50_small/crawled.txt");
 	
-	matcher *M = new matcher(&G_a, &G, 10000);
+	matcher *M = new matcher(&G_a, &G);
 	M->match();
 	
 	M->print(stdout);
