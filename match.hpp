@@ -18,23 +18,28 @@
 #include <time.h>
 #include <algorithm>
 
+// MAX rounds of updating each pair of nodes
 #define MAX_ROUNDS 5
 
+// parameters for calculating similarities
 #define ALPHA1 1
 #define BETA1 1
 #define ALPHA2 1
 #define BETA2 1
 
+// whether use multithread
 #define MULTITHREAD 1
 
 #if MULTITHREAD
+
 #include "thpool.hpp"
+
+// size of the thread pool
 #define THREAD_POOL_SIZE 12
+
 #endif
 
 using namespace std;
-
-const double eps = 1;
 
 int int_abs(int);
 
@@ -48,16 +53,10 @@ private:
 	class graph * G_a;
 	class graph * G;
 
-	typedef double all_node_pairs[MAX_NODES][MAX_NODES];
-
+	typedef double all_node_pairs[MAX_NODES][MAX_NODES]; // x_a, x
 
 	all_node_pairs sim_nodes;
-//	all_node_pairs sim_nodes_last;
 	all_node_pairs sim_subgraphs;
-
-	//map< pair<int, int>, int> sim_nodes; // x_a, x, sim
-	//map< pair<int, int>, int> sim_nodes_last;
-	//map< pair<int, int>, int> sim_subgraphs; // x_a, x, sim(subgraph(x_a), subgraph(x))
 	
 	struct match_edge {
 		int u, v;
@@ -71,7 +70,7 @@ private:
 	vector<match_edge> ans_pairs;
 
 public:
-	matcher(class graph *g_a, class graph *g, int _num_ans_pairs = 1000);
+	matcher(class graph *g_a, class graph *g);
 	
 	void match();
 	

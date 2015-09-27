@@ -12,7 +12,7 @@ int int_abs(int x){
 	return x < 0 ? -x : x;
 }
 
-matcher::matcher(class graph * g_a, class graph * g, int _num_ans_pairs): G_a(g_a), G(g), num_ans_pairs(_num_ans_pairs){
+matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 	for (int i=1; i<=g_a->num_nodes; i++)
 		for (int j=1; j<=g->num_nodes; j++){
 			sim_nodes[i][j] = 1;
@@ -106,12 +106,8 @@ void matcher::match() {
 #endif
 
 	for (cT=0; ++cT < MAX_ROUNDS; ) {
-/*		// copy to sim_nodes_last
-		memcpy(sim_nodes_last, sim_nodes, sizeof(sim_nodes));
-		sum_last = sum;
-*/
 
-		// update similarities for every pair of nodes
+		// update node similarities for every pair of nodes
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 #if MULTITHREAD
@@ -128,6 +124,7 @@ void matcher::match() {
 		thpool_wait(thpool);
 #endif
 
+		// update subgraph similarities for every pair of nodes
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 #if MULTITHREAD
@@ -177,19 +174,17 @@ void matcher::match() {
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
 	memset(flag_a, 0, MAX_NODES);
 	memset(flag, 0, MAX_NODES);
-	for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
+	for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) 
 		for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
 			match_edges.push_back(match_edge(*i, *j, sim_nodes[*i][*j]));
 		}
-	}
 	sort(match_edges.begin(), match_edges.end());
-	for (vector<match_edge>::iterator it=match_edges.begin(); it!=match_edges.end(); ++it) {
+	for (vector<match_edge>::iterator it=match_edges.begin(); it!=match_edges.end(); ++it) 
 		if (!flag_a[it->u] && !flag[it->v]) {
 			flag_a[it->u] = 1;
 			flag[it->v] = 1;
 			ans_pairs.push_back(*it);
 		}
-	}
 	delete []flag_a;
 	delete []flag;
 	
