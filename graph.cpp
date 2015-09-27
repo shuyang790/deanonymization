@@ -15,31 +15,44 @@ graph::graph(const char * file_name){
 	}
 	fscanf(f, "%d%d", &num_nodes, &num_edges);
 	edges.resize(num_nodes+1);
+	rev_edges.resize(num_nodes+1);
 	for (int i=1; i<=num_nodes; i++) {
 		nodes.push_back(i);
 		edges[i] = new vector<int>;
+		rev_edges[i] = new vector<int>;
 	}
 	for (int i=0, j, k; i<num_edges; i++) {
 		fscanf(f, "%d%d", &j, &k);
 		edges[j]->push_back(k);
+		rev_edges[k]->push_back(j);
 	}
 	fclose(f);
+	memset(neighbors, 0, sizeof neighbors);
+	memset(subgraphs, 0, sizeof subgraphs);
 	fprintf(stderr, "Graph read: %d, %d\n", num_nodes, num_edges);
 }
 
 
 
 vector<int> * graph::extract_neighbors(int node){
+	if (neighbors[node])
+		return neighbors[node];
 	vector<int> * re = new vector<int>;
 	for (vector<int> :: iterator it=edges[node]->begin(); it!=edges[node]->end(); it++)
 		re->push_back(*it);
-	return re; //TODO: extract neighbors
+	/*for (vector<int> :: iterator it=rev_edges[node]->begin(); it!=rev_edges[node]->end(); it++)
+		re->push_back(*it);
+	sort(re->begin(), re->end());
+	unique(re->begin(), re->end());*/
+	return neighbors[node] = re;
 }
 
-graph::subgraph graph::extract_subgraph(int node){
-	subgraph re;
-	re.center = node;
-	re.num_nodes = 1;
+graph::subgraph * graph::extract_subgraph(int node){
+	if (subgraphs[node])
+		return subgraphs[node];
+	subgraph * re = new subgraph;
+	re->center = node;
+	re->num_nodes = 1;
 	
 	queue<int> Q;
 	int * flag = new int[MAX_NODES];
@@ -48,7 +61,7 @@ graph::subgraph graph::extract_subgraph(int node){
 	Q.push(node);
 	for (int i=0, last_cnt = 1; i<L; i++) {
 		int cnt = 0;
-		re.nodes_per_level[i].clear();
+		re->nodes_per_level[i].clear();
 		while (last_cnt --) {
 			int cur = Q.front();
 			Q.pop();
@@ -56,14 +69,14 @@ graph::subgraph graph::extract_subgraph(int node){
 				if (!flag[*it]) {
 					flag[*it] = 1;
 					Q.push(*it);
-					re.nodes_per_level[i].push_back(*it);
+					re->nodes_per_level[i].push_back(*it);
 					cnt++;
 				}
 			}
 		}
-		re.num_nodes_seq.push_back(cnt);
+		re->num_nodes_seq.push_back(cnt);
 		last_cnt = cnt;
 	}
 	delete []flag;
-	return re;
+	return subgraphs[node] = re;
 }

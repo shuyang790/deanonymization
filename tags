@@ -1,0 +1,117 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ALPHA1	match.hpp	23;"	d
+ALPHA2	match.hpp	25;"	d
+BETA1	match.hpp	24;"	d
+BETA2	match.hpp	26;"	d
+CC	Makefile	/^CC = g++$/;"	m
+CEIL	thpool.cpp	29;"	d	file:
+CFLAG	Makefile	/^CFLAG = -O3 -g -pthread$/;"	m
+EXE	Makefile	/^EXE = main$/;"	m
+G	match.hpp	/^	class graph * G;$/;"	m	class:matcher	typeref:class:matcher::graph
+G_a	match.hpp	/^	class graph * G_a;$/;"	m	class:matcher	typeref:class:matcher::graph
+L	graph.hpp	21;"	d
+MAX_NANOSEC	thpool.cpp	28;"	d	file:
+MAX_NODES	graph.hpp	19;"	d
+MAX_ROUNDS	match.hpp	21;"	d
+MULTITHREAD	match.hpp	28;"	d
+OBJ	Makefile	/^OBJ = main.o match.o graph.o thpool.o$/;"	m
+THPOOL_DEBUG	thpool.cpp	23;"	d	file:
+THPOOL_DEBUG	thpool.cpp	25;"	d	file:
+THREAD_POOL_SIZE	match.hpp	32;"	d
+_THPOOL_	thpool.hpp	8;"	d
+all_node_pairs	match.hpp	/^	typedef double all_node_pairs[MAX_NODES][MAX_NODES];$/;"	t	class:matcher
+ans_pairs	match.hpp	/^	vector<match_edge> ans_pairs;$/;"	m	class:matcher
+arg	thpool.cpp	/^	void*  arg;                          \/* function's argument       *\/$/;"	m	struct:job	file:
+bsem	thpool.cpp	/^typedef struct bsem {$/;"	s	file:
+bsem	thpool.cpp	/^} bsem;$/;"	t	typeref:struct:bsem	file:
+bsem_init	thpool.cpp	/^static void bsem_init(bsem *bsem_p, int value) {$/;"	f	file:
+bsem_post	thpool.cpp	/^static void bsem_post(bsem *bsem_p) {$/;"	f	file:
+bsem_post_all	thpool.cpp	/^static void bsem_post_all(bsem *bsem_p) {$/;"	f	file:
+bsem_reset	thpool.cpp	/^static void bsem_reset(bsem *bsem_p) {$/;"	f	file:
+bsem_wait	thpool.cpp	/^static void bsem_wait(bsem* bsem_p) {$/;"	f	file:
+calc_sim_nodes	match.cpp	/^double matcher::calc_sim_nodes(int u, int v) {$/;"	f	class:matcher
+calc_sim_nodes_pthread	match.cpp	/^void * calc_sim_nodes_pthread(void * args) {$/;"	f
+calc_sim_subgraphs	match.cpp	/^double matcher::calc_sim_subgraphs(int u, int v) {$/;"	f	class:matcher
+calc_sim_subgraphs_pthread	match.cpp	/^void  * calc_sim_subgraphs_pthread(void * args) {$/;"	f
+center	graph.hpp	/^		int center;$/;"	m	struct:graph::subgraph
+compare	compare.py	/^def compare(prog_output, correct_pair, num_nodes, output):$/;"	f
+cond	thpool.cpp	/^	pthread_cond_t   cond;$/;"	m	struct:bsem	file:
+edges	graph.hpp	/^	vector < vector<int> * > edges;$/;"	m	class:graph
+eps	match.hpp	/^const double eps = 1;$/;"	v
+extract_neighbors	graph.cpp	/^vector<int> * graph::extract_neighbors(int node){$/;"	f	class:graph
+extract_subgraph	graph.cpp	/^graph::subgraph graph::extract_subgraph(int node){$/;"	f	class:graph
+front	thpool.cpp	/^	job  *front;                         \/* pointer to front of queue *\/$/;"	m	struct:jobqueue	file:
+function	thpool.cpp	/^	void*  (*function)(void* arg);       \/* function pointer          *\/$/;"	m	struct:job	file:
+graph	graph.cpp	/^graph::graph(const char * file_name){$/;"	f	class:graph
+graph	graph.hpp	/^class graph {$/;"	c
+graph_hpp	graph.hpp	10;"	d
+has_jobs	thpool.cpp	/^	bsem *has_jobs;                      \/* flag as binary semaphore  *\/$/;"	m	struct:jobqueue	file:
+id	thpool.cpp	/^	int       id;                        \/* friendly id               *\/$/;"	m	struct:thread	file:
+int_abs	match.cpp	/^int int_abs(int x){$/;"	f
+job	thpool.cpp	/^typedef struct job{$/;"	s	file:
+job	thpool.cpp	/^} job;$/;"	t	typeref:struct:job	file:
+jobqueue	thpool.cpp	/^typedef struct jobqueue{$/;"	s	file:
+jobqueue	thpool.cpp	/^} jobqueue;$/;"	t	typeref:struct:jobqueue	file:
+jobqueue_clear	thpool.cpp	/^static void jobqueue_clear(thpool_* thpool_p){$/;"	f	file:
+jobqueue_destroy	thpool.cpp	/^static void jobqueue_destroy(thpool_* thpool_p){$/;"	f	file:
+jobqueue_init	thpool.cpp	/^static int jobqueue_init(thpool_* thpool_p){$/;"	f	file:
+jobqueue_p	thpool.cpp	/^	jobqueue*  jobqueue_p;               \/* pointer to the job queue  *\/    $/;"	m	struct:thpool_	file:
+jobqueue_pull	thpool.cpp	/^static struct job* jobqueue_pull(thpool_* thpool_p){$/;"	f	file:
+jobqueue_push	thpool.cpp	/^static void jobqueue_push(thpool_* thpool_p, struct job* newjob){$/;"	f	file:
+len	thpool.cpp	/^	int   len;                           \/* number of jobs in queue   *\/$/;"	m	struct:jobqueue	file:
+main	main.cpp	/^int main(int argc, const char * argv[]) {$/;"	f
+match	match.cpp	/^void matcher::match() {$/;"	f	class:matcher
+match_edge	match.hpp	/^		match_edge(int _u=0, int _v=0, double _w=0): u(_u), v(_v), w(_w) {}$/;"	f	struct:matcher::match_edge
+match_edge	match.hpp	/^	struct match_edge {$/;"	s	class:matcher
+match_hpp	match.hpp	10;"	d
+matcher	match.cpp	/^matcher::matcher(class graph * g_a, class graph * g, int _num_ans_pairs): G_a(g_a), G(g), num_ans_pairs(_num_ans_pairs){$/;"	f	class:matcher
+matcher	match.hpp	/^class matcher {$/;"	c
+mutex	thpool.cpp	/^	pthread_mutex_t mutex;$/;"	m	struct:bsem	file:
+nodes	graph.hpp	/^	vector <int> nodes;$/;"	m	class:graph
+nodes_per_level	graph.hpp	/^		vector<int> nodes_per_level[L];$/;"	m	struct:graph::subgraph
+num_ans_pairs	match.hpp	/^	int num_ans_pairs;$/;"	m	class:matcher
+num_edges	graph.hpp	/^	int num_edges;$/;"	m	class:graph
+num_nodes	graph.hpp	/^		int num_nodes;$/;"	m	struct:graph::subgraph
+num_nodes	graph.hpp	/^	int num_nodes;$/;"	m	class:graph
+num_nodes_seq	graph.hpp	/^		vector<int> num_nodes_seq;$/;"	m	struct:graph::subgraph
+num_threads_alive	thpool.cpp	/^	volatile int num_threads_alive;      \/* threads currently alive   *\/$/;"	m	struct:thpool_	file:
+num_threads_working	thpool.cpp	/^	volatile int num_threads_working;    \/* threads currently working *\/$/;"	m	struct:thpool_	file:
+operator <	match.hpp	/^		bool operator < (const match_edge & b) const {$/;"	f	struct:matcher::match_edge
+prev	thpool.cpp	/^	struct job*  prev;                   \/* pointer to previous job   *\/$/;"	m	struct:job	typeref:struct:job::job	file:
+print	match.cpp	/^void matcher::print(FILE *ou) {$/;"	f	class:matcher
+pthread	thpool.cpp	/^	pthread_t pthread;                   \/* pointer to actual thread  *\/$/;"	m	struct:thread	file:
+rear	thpool.cpp	/^	job  *rear;                          \/* pointer to rear  of queue *\/$/;"	m	struct:jobqueue	file:
+rwmutex	thpool.cpp	/^	pthread_mutex_t rwmutex;             \/* used for queue r\/w access *\/$/;"	m	struct:jobqueue	file:
+sim_nodes	match.hpp	/^	all_node_pairs sim_nodes;$/;"	m	class:matcher
+sim_subgraphs	match.hpp	/^	all_node_pairs sim_subgraphs;$/;"	m	class:matcher
+subgraph	graph.hpp	/^	struct subgraph {$/;"	s	class:graph
+thcount_lock	thpool.cpp	/^	pthread_mutex_t  thcount_lock;       \/* used for thread count etc *\/$/;"	m	struct:thpool_	file:
+thpool	match.hpp	/^static threadpool thpool;$/;"	v
+thpool_	thpool.cpp	/^typedef struct thpool_{$/;"	s	file:
+thpool_	thpool.cpp	/^} thpool_;$/;"	t	typeref:struct:thpool_	file:
+thpool_add_work	thpool.cpp	/^int thpool_add_work(thpool_* thpool_p, void *(*function_p)(void*), void* arg_p){$/;"	f
+thpool_destroy	thpool.cpp	/^void thpool_destroy(thpool_* thpool_p){$/;"	f
+thpool_init	thpool.cpp	/^struct thpool_* thpool_init(int num_threads){$/;"	f
+thpool_p	thpool.cpp	/^	struct thpool_* thpool_p;            \/* access to thpool          *\/$/;"	m	struct:thread	typeref:struct:thread::thpool_	file:
+thpool_pause	thpool.cpp	/^void thpool_pause(thpool_* thpool_p) {$/;"	f
+thpool_resume	thpool.cpp	/^void thpool_resume(thpool_* thpool_p) {$/;"	f
+thpool_wait	thpool.cpp	/^void thpool_wait(thpool_* thpool_p){$/;"	f
+thread	thpool.cpp	/^typedef struct thread{$/;"	s	file:
+thread	thpool.cpp	/^} thread;$/;"	t	typeref:struct:thread	file:
+thread_destroy	thpool.cpp	/^static void thread_destroy (thread* thread_p){$/;"	f	file:
+thread_do	thpool.cpp	/^static void* thread_do(struct thread* thread_p){$/;"	f	file:
+thread_hold	thpool.cpp	/^static void thread_hold () {$/;"	f	file:
+thread_init	thpool.cpp	/^static void thread_init (thpool_* thpool_p, struct thread** thread_p, int id){$/;"	f	file:
+threadpool	thpool.hpp	/^typedef struct thpool_* threadpool;$/;"	t	typeref:struct:thpool_
+threads	thpool.cpp	/^	thread**   threads;                  \/* pointer to threads        *\/$/;"	m	struct:thpool_	file:
+threads_keepalive	thpool.cpp	/^static volatile int threads_keepalive;$/;"	v	file:
+threads_on_hold	thpool.cpp	/^static volatile int threads_on_hold;$/;"	v	file:
+u	match.hpp	/^		int u, v;$/;"	m	struct:matcher::match_edge
+v	match.hpp	/^		int u, v;$/;"	m	struct:matcher::match_edge
+v	thpool.cpp	/^	int v;$/;"	m	struct:bsem	file:
+w	match.hpp	/^		double w;$/;"	m	struct:matcher::match_edge

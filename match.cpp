@@ -49,12 +49,12 @@ double matcher::calc_sim_nodes(int u, int v) {
 }
 
 double matcher::calc_sim_subgraphs(int u, int v) {
-	graph::subgraph subg_a = G_a->extract_subgraph(u);
-	graph::subgraph subg = G->extract_subgraph(v);
+	graph::subgraph * subg_a = G_a->extract_subgraph(u);
+	graph::subgraph * subg = G->extract_subgraph(v);
 	
 	double w1 = 0; // node sequence
 	for (int i=0; i<L; i++) {
-		w1 += 1. / (1 + int_abs(subg_a.num_nodes_seq[i] - subg.num_nodes_seq[i]));
+		w1 += 1. / (1 + int_abs(subg_a->num_nodes_seq[i] - subg->num_nodes_seq[i]));
 	}
 	
 	double w2 = 0; // sum(level * sim_nodes)
@@ -63,8 +63,8 @@ double matcher::calc_sim_subgraphs(int u, int v) {
 	memset(flag_a, 0, MAX_NODES);
 	memset(flag, 0, MAX_NODES);
 	for (int i=0; i<L; i++) {
-		for (vector<int> :: iterator j = subg_a.nodes_per_level[0].begin(); j!=subg_a.nodes_per_level[0].end(); j++) {
-			for (vector<int> :: iterator k = subg.nodes_per_level[1].begin(); k!=subg.nodes_per_level[1].end(); k++) {
+		for (vector<int> :: iterator j = subg_a->nodes_per_level[0].begin(); j!=subg_a->nodes_per_level[0].end(); j++) {
+			for (vector<int> :: iterator k = subg->nodes_per_level[1].begin(); k!=subg->nodes_per_level[1].end(); k++) {
 				match_edges.push_back(match_edge(*j, *k, sim_nodes[*j][*k]));
 			}
 		}
