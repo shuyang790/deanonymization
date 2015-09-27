@@ -16,7 +16,7 @@
 #include <set>
 #include <queue>
 
-#define MAX_NODES 7700
+#define MAX_NODES 10010
 
 #define L 2
 
