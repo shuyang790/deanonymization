@@ -24,7 +24,7 @@ graph::graph(const char * file_name){
 		edges[j]->push_back(k);
 	}
 	fclose(f);
-	printf("Graph read: %d, %d\n", num_nodes, num_edges);
+	fprintf(stderr, "Graph read: %d, %d\n", num_nodes, num_edges);
 }
 
 

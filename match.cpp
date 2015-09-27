@@ -13,7 +13,6 @@ int int_abs(int x){
 }
 
 matcher::matcher(class graph * g_a, class graph * g, int _num_ans_pairs): G_a(g_a), G(g), num_ans_pairs(_num_ans_pairs){
-	printf(".\n");
 	for (int i=1; i<=g_a->num_nodes; i++)
 		for (int j=1; j<=g->num_nodes; j++){
 			sim_nodes[i][j] = 1;
@@ -44,7 +43,7 @@ int matcher::calc_sim_nodes(int u, int v) {
 	delete []flag_a;
 	delete []flag;
 	int w2 = sim_subgraphs[u][v];
-	if (u%1000==0)
+	if (u%1000==0 && v%1000==0)
 		fprintf(stderr, "sim_nodes(%d, %d) = %d\n", u, v, ALPHA1 * w1 + BETA1 * w2);
 	return  sim_nodes[u][v] = ALPHA1 * w1 + BETA1 * w2;
 }
@@ -79,7 +78,7 @@ int matcher::calc_sim_subgraphs(int u, int v) {
 	}
 	delete []flag_a;
 	delete []flag;
-	if (u%1000==0)
+	if (u%1000==0 && v%1000 == 0)
 		fprintf(stderr, "sim_subgraphs(%d, %d) = %d\n", u, v, ALPHA2 * w1 + BETA2 * w2);
 	return sim_subgraphs[u][v] = ALPHA2 * w1 + BETA2 * w2;
 }
@@ -107,7 +106,7 @@ void matcher::match() {
 	thpool = thpool_init(THREAD_POOL_SIZE);
 #endif
 
-	for (cT=0; ++cT; ) {
+	for (cT=0; ++cT < MAX_ROUNDS; ) {
 		// copy to sim_nodes_last
 		memcpy(sim_nodes_last, sim_nodes, sizeof(sim_nodes));
 		sum_last = sum;
@@ -151,6 +150,7 @@ void matcher::match() {
 				sum += int_abs(sim_nodes[*i][*j]);
 			}
 		}
+		/*
 		// check if converge(normalized)
 		// TODO: normalization
 		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
@@ -162,7 +162,8 @@ void matcher::match() {
 		}
 		break;
 	next_round:;
-		printf("cT = %d\n", cT);
+		*/
+		fprintf(stderr, "cT = %d\n", cT);
 	}
 	
 	vector<match_edge> match_edges;
