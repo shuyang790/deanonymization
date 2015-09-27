@@ -54,7 +54,7 @@ double matcher::calc_sim_subgraphs(int u, int v) {
 	
 	double w1 = 0; // node sequence
 	for (int i=0; i<L; i++) {
-		w1 += - int_abs(subg_a.num_nodes_seq[i] - subg.num_nodes_seq[i]);
+		w1 += 1. / (1 + int_abs(subg_a.num_nodes_seq[i] - subg.num_nodes_seq[i]));
 	}
 	
 	double w2 = 0; // sum(level * sim_nodes)
