@@ -18,7 +18,7 @@ int main(int argc, const char * argv[]) {
 	graph G_a("data/50\%/anonymized.txt");
 	graph G("data/50\%/crawled.txt");
 	
-	matcher *M = new matcher(&G_a, &G, 1000);
+	matcher *M = new matcher(&G_a, &G, 10000);
 	M->match();
 	
 	M->print(stdout);
