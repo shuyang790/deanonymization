@@ -48,11 +48,11 @@ private:
 	class graph * G_a;
 	class graph * G;
 
-	typedef int all_node_pairs[MAX_NODES][MAX_NODES];
+	typedef double all_node_pairs[MAX_NODES][MAX_NODES];
 
 
 	all_node_pairs sim_nodes;
-	all_node_pairs sim_nodes_last;
+//	all_node_pairs sim_nodes_last;
 	all_node_pairs sim_subgraphs;
 
 	//map< pair<int, int>, int> sim_nodes; // x_a, x, sim
@@ -60,8 +60,9 @@ private:
 	//map< pair<int, int>, int> sim_subgraphs; // x_a, x, sim(subgraph(x_a), subgraph(x))
 	
 	struct match_edge {
-		int u, v, w;
-		match_edge(int _u=0, int _v=0, int _w=0): u(_u), v(_v), w(_w) {}
+		int u, v;
+		double w;
+		match_edge(int _u=0, int _v=0, double _w=0): u(_u), v(_v), w(_w) {}
 		bool operator < (const match_edge & b) const {
 			return w > b.w;
 		}
@@ -74,8 +75,8 @@ public:
 	
 	void match();
 	
-	int calc_sim_nodes(int u, int v); // u from G_a, v from G
-	int calc_sim_subgraphs(int u, int v); // u, v are centers and from G_a, G perspectively
+	double calc_sim_nodes(int u, int v); // u from G_a, v from G
+	double calc_sim_subgraphs(int u, int v); // u, v are centers and from G_a, G perspectively
 	
 	void print(FILE *ou);
 };

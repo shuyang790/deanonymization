@@ -1,7 +1,7 @@
 
 def compare(prog_output, correct_pair, num_nodes, output):
 	f_p = open(prog_output)
-	p_lines = f_p.readlines()[3:] # G_a, G
+	p_lines = f_p.readlines() # G_a, G
 	f_p.close()
 
 	f_c = open(correct_pair)
@@ -28,5 +28,5 @@ def compare(prog_output, correct_pair, num_nodes, output):
 	print ("%s finished.\n" % prog_output)
 
 if __name__ == "__main__":
-	compare("LOG50", "data/50%/pair_a_c.txt", 7500, "result/50")
-	compare("LOG100", "data/100%/pair_a_c.txt", 10000, "result/100")
+	compare("result/LOG50", "data/50%/pair_a_c.txt", 7500, "result/50")
+#	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, "result/100")
