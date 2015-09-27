@@ -20,8 +20,8 @@ matcher::matcher(class graph * g_a, class graph * g, int _num_ans_pairs): G_a(g_
 		}
 }
 
-int matcher::calc_sim_nodes(int u, int v) {
-	int w1 = 0;
+double matcher::calc_sim_nodes(int u, int v) {
+	double w1 = 0;
 	vector<int> * nb_a = G_a->extract_neighbors(u);
 	vector<int> * nb = G->extract_neighbors(v);
 	
@@ -42,22 +42,22 @@ int matcher::calc_sim_nodes(int u, int v) {
 	}
 	delete []flag_a;
 	delete []flag;
-	int w2 = sim_subgraphs[u][v];
+	double w2 = sim_subgraphs[u][v];
 	if (u%1000==0 && v%1000==0)
-		fprintf(stderr, "sim_nodes(%d, %d) = %d\n", u, v, ALPHA1 * w1 + BETA1 * w2);
+		fprintf(stderr, "sim_nodes(%d, %d) = %g\n", u, v, ALPHA1 * w1 + BETA1 * w2);
 	return  sim_nodes[u][v] = ALPHA1 * w1 + BETA1 * w2;
 }
 
-int matcher::calc_sim_subgraphs(int u, int v) {
+double matcher::calc_sim_subgraphs(int u, int v) {
 	graph::subgraph subg_a = G_a->extract_subgraph(u);
 	graph::subgraph subg = G->extract_subgraph(v);
 	
-	int w1 = 0; // node sequence
+	double w1 = 0; // node sequence
 	for (int i=0; i<L; i++) {
 		w1 += - int_abs(subg_a.num_nodes_seq[i] - subg.num_nodes_seq[i]);
 	}
 	
-	int w2 = 0; // sum(level * sim_nodes)
+	double w2 = 0; // sum(level * sim_nodes)
 	vector <match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
 	memset(flag_a, 0, MAX_NODES);
@@ -79,7 +79,7 @@ int matcher::calc_sim_subgraphs(int u, int v) {
 	delete []flag_a;
 	delete []flag;
 	if (u%1000==0 && v%1000 == 0)
-		fprintf(stderr, "sim_subgraphs(%d, %d) = %d\n", u, v, ALPHA2 * w1 + BETA2 * w2);
+		fprintf(stderr, "sim_subgraphs(%d, %d) = %g\n", u, v, ALPHA2 * w1 + BETA2 * w2);
 	return sim_subgraphs[u][v] = ALPHA2 * w1 + BETA2 * w2;
 }
 
@@ -100,16 +100,16 @@ void  * calc_sim_subgraphs_pthread(void * args) {
 void matcher::match() {
 	clock_t time_start = clock();
 	int cT;
-	double sum = G_a->num_nodes * G->num_nodes, sum_last;
-	
+
 #if MULTITHREAD
 	thpool = thpool_init(THREAD_POOL_SIZE);
 #endif
 
 	for (cT=0; ++cT < MAX_ROUNDS; ) {
-		// copy to sim_nodes_last
+/*		// copy to sim_nodes_last
 		memcpy(sim_nodes_last, sim_nodes, sizeof(sim_nodes));
 		sum_last = sum;
+*/
 
 		// update similarities for every pair of nodes
 		for (int i=1; i<=G_a->num_nodes; i++)
@@ -144,15 +144,22 @@ void matcher::match() {
 		thpool_wait(thpool);
 #endif
 
-		sum = 0;
-		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
-			for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
-				sum += int_abs(sim_nodes[*i][*j]);
+		// normalization
+		double max_ele_nodes = -1, max_ele_subgraphs = -1;
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++){
+				double tmp = sim_nodes[i][j];
+				max_ele_nodes = max(max_ele_nodes, tmp);
+				tmp = sim_subgraphs[i][j];
+				max_ele_subgraphs = max(max_ele_subgraphs, tmp);
 			}
-		}
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++){
+				sim_nodes[i][j] /= max_ele_nodes;
+				sim_subgraphs[i][j] /= max_ele_subgraphs;
+			}
 		/*
 		// check if converge(normalized)
-		// TODO: normalization
 		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
 			for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
 				if (fabs(sim_nodes_last[*i][*j]/sum_last - sim_nodes[*i][*j]/sum) > eps) {
