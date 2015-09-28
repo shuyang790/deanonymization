@@ -124,6 +124,7 @@ void matcher::match() {
 		thpool_wait(thpool);
 #endif
 
+#if SUBGRAPHS
 		// update subgraph similarities for every pair of nodes
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
@@ -140,7 +141,7 @@ void matcher::match() {
 #if MULTITHREAD
 		thpool_wait(thpool);
 #endif
-
+#endif
 		// normalization
 		double max_ele_nodes = -1, max_ele_subgraphs = -1;
 		for (int i=1; i<=G_a->num_nodes; i++)
@@ -193,6 +194,6 @@ void matcher::match() {
 
 void matcher::print(FILE *ou) {
 	for (vector<match_edge> :: iterator it=ans_pairs.begin(); it!=ans_pairs.end(); ++it) {
-		fprintf(ou, "%d %d\n", it->u, it->v);
+		fprintf(ou, "%d %d %g\n", it->u, it->v, it->w);
 	}
 }
