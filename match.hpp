@@ -19,13 +19,16 @@
 #include <algorithm>
 
 // MAX rounds of updating each pair of nodes
-#define MAX_ROUNDS 5
+#define MAX_ROUNDS 6
 
 // parameters for calculating similarities
 #define ALPHA1 1
 #define BETA1 1
 #define ALPHA2 1
 #define BETA2 1
+
+// whether use subgraphs
+#define SUBGRAPHS 1
 
 // whether use multithread
 #define MULTITHREAD 1
