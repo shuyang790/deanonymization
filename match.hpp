@@ -18,13 +18,16 @@
 #include <time.h>
 #include <algorithm>
 
+// whether to print the similarity values
+#define PRINT_SIMI 0
+
 // MAX rounds of updating each pair of nodes
 #define MAX_ROUNDS 6
 
 // parameters for calculating similarities
 #define ALPHA1 1
 #define BETA1 1
-#define ALPHA2 1
+#define ALPHA2 0.5
 #define BETA2 1
 
 // whether use subgraphs
@@ -38,7 +41,7 @@
 #include "thpool.hpp"
 
 // size of the thread pool
-#define THREAD_POOL_SIZE 12
+#define THREAD_POOL_SIZE 4
 
 #endif
 
@@ -60,6 +63,7 @@ private:
 
 	all_node_pairs sim_nodes;
 	all_node_pairs sim_subgraphs;
+	all_node_pairs last_round;
 	
 	struct match_edge {
 		int u, v;
