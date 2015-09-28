@@ -29,4 +29,4 @@ def compare(prog_output, correct_pair, num_nodes, output):
 
 if __name__ == "__main__":
 	compare("result/LOG50", "data/50%/pair_a_c.txt", 7500, "result/50")
-#	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, "result/100")
+	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, "result/100")

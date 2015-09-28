@@ -31,7 +31,7 @@ double matcher::calc_sim_nodes(int u, int v) {
 	memset(flag, 0, MAX_NODES);
 	for (vector<int> :: iterator i = nb_a->begin(); i!=nb_a->end(); i++)
 		for (vector<int> :: iterator j = nb->begin(); j!=nb->end(); j++)
-			match_edges.push_back(match_edge(*i, *j, sim_nodes[*i][*j]));
+			match_edges.push_back(match_edge(*i, *j, last_round[*i][*j]));
 	sort(match_edges.begin(), match_edges.end());
 	for (vector<match_edge> :: iterator i = match_edges.begin(); i!=match_edges.end(); i++) {
 		if (!flag_a[i->u] && !flag[i->v]) {
@@ -108,6 +108,7 @@ void matcher::match() {
 	for (cT=0; ++cT < MAX_ROUNDS; ) {
 
 		// update node similarities for every pair of nodes
+		memcpy(last_round, sim_nodes, sizeof(sim_nodes));
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 #if MULTITHREAD
@@ -126,6 +127,7 @@ void matcher::match() {
 
 #if SUBGRAPHS
 		// update subgraph similarities for every pair of nodes
+		memcpy(last_round, sim_subgraphs, sizeof(sim_subgraphs));
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 #if MULTITHREAD
@@ -158,15 +160,14 @@ void matcher::match() {
 			}
 		/*
 		// check if converge(normalized)
-		for (vector<int> ::iterator i=G_a->nodes.begin(); i!=G_a->nodes.end(); i++) {
-			for (vector<int> ::iterator j=G->nodes.begin(); j!=G->nodes.end(); j++) {
-				if (fabs(sim_nodes_last[*i][*j]/sum_last - sim_nodes[*i][*j]/sum) > eps) {
-					goto next_round;
-				}
-			}
-		}
-		break;
-	next_round:;
+		*/
+		/*
+		FILE * logf = fopen("matrix.log", "a");
+		fprintf(logf, "round %d\n", cT);
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++)
+				fprintf(logf, "\tsimi[%d][%d]=%g, %g\n", i, j, sim_nodes[i][j], sim_subgraphs[i][j]);
+		fclose(logf);
 		*/
 		fprintf(stderr, "cT = %d\n", cT);
 	}
@@ -194,6 +195,11 @@ void matcher::match() {
 
 void matcher::print(FILE *ou) {
 	for (vector<match_edge> :: iterator it=ans_pairs.begin(); it!=ans_pairs.end(); ++it) {
+#if PRINT_SIMI
 		fprintf(ou, "%d %d %g\n", it->u, it->v, it->w);
+#else
+		fprintf(ou, "%d %d\n", it->u, it->v);
+#endif
+
 	}
 }
