@@ -41,7 +41,7 @@
 #include "thpool.hpp"
 
 // size of the thread pool
-#define THREAD_POOL_SIZE 4
+#define THREAD_POOL_SIZE 12
 
 #endif
 
