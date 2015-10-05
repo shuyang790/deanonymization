@@ -22,7 +22,7 @@ matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 double matcher::calc_sim_nodes(int u, int v) {
 	graph::subgraph * subg_a = G_a->extract_subgraph(u);
 	graph::subgraph * subg = G->extract_subgraph(v);
-	
+
 	double w = 0; // sum(sum_per_level(sim_nodes))
 	vector <match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
@@ -33,6 +33,7 @@ double matcher::calc_sim_nodes(int u, int v) {
 			for (vector<int> :: iterator k = subg->nodes_per_level[i].begin(); k!=subg->nodes_per_level[i].end(); k++) 
 				match_edges.push_back(match_edge(*j, *k, last_round[*j][*k]));
 	}
+	sort(match_edges.begin(), match_edges.end());
 	for (vector<match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
 		if (!flag_a[it->u] && !flag[it->v]) {
 			flag_a[it->u] = 1;
@@ -43,7 +44,7 @@ double matcher::calc_sim_nodes(int u, int v) {
 	delete []flag_a;
 	delete []flag;
 	if (u%1000==0 && v%1000 == 0)
-		fprintf(stderr, "sim_nodes(%d, %d) = %g\n", u, v, w);
+		fprintf(stderr, "#sim_nodes(%d, %d) = %g#", u, v, w);
 	return sim_nodes[u][v] = w;
 }
 
@@ -62,6 +63,10 @@ void matcher::match() {
 
 #if MULTITHREAD
 	thpool = thpool_init(THREAD_POOL_SIZE);
+	for (int i=1; i<=G_a->num_nodes; i++)
+		G_a->extract_subgraph(i);
+	for (int i=1; i<=G->num_nodes; i++)
+		G->extract_subgraph(i);
 #endif
 
 	for (cT=0; ++cT < MAX_ROUNDS; ) {
@@ -91,6 +96,11 @@ void matcher::match() {
 				double tmp = sim_nodes[i][j];
 				max_ele_nodes = max(max_ele_nodes, tmp);
 			}
+		/*
+	for (int i=1; i<=5; i++, putchar(10))
+		for (int j=1; j<=4; j++)
+			printf("\t\tsim[%d][%d]=%g\t", i, j, sim_nodes[i][j]);
+			*/
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_nodes[i][j] /= max_ele_nodes;
@@ -115,9 +125,11 @@ matcher::heap::heap(int n, int m, struct matcher *o) {
 }
 
 void matcher::heap::heap_down(int x) {
-	for (int ma;;){
-		ma = (heap_v(heap_lc(x)) > heap_v(heap_rc(x))
-				? heap_lc(x) : heap_rc(x));
+	for (int ma; heap_lc(x) <= len; x = ma){
+		ma = heap_rc(x) <= len
+			? (heap_v(heap_lc(x)) > heap_v(heap_rc(x))
+				? heap_lc(x) : heap_rc(x))
+			: heap_lc(x);
 		if (heap_v(x) >= heap_v(ma))
 			break;
 		swap(nodes[x], nodes[ma]);
@@ -152,6 +164,13 @@ void matcher::gen_ans_pairs() {
 
 	memcpy(last_round, sim_nodes, sizeof(sim_nodes));
 	H = new heap(G_a->num_nodes, G->num_nodes, this);
+//	for (int i=1; i<=5; i++, putchar(10))
+//		for (int j=1; j<=4; j++)
+//			printf("\t\tsim[%d][%d]=%g\t", i, j, sim_nodes[i][j]);
+//	for (int i=1; i<=H->len; i++)
+//		printf("\tHeap[%d]: sim(%d, %d) = %g\n",
+//				i, H->nodes[i].u, H->nodes[i].v, sim_nodes[H->nodes[i].u][H->nodes[i].v]);
+
 	for (int u, v; H->len > 0; ) {
 		vector <int> nbs_a;
 		vector <int> nbs;
