@@ -40,7 +40,7 @@ private:
 
 	vector <int> * neighbors[MAX_NODES];
 	subgraph * subgraphs[MAX_NODES];
-	
+
 public:
 	graph(const char * file_name);
 	

@@ -24,15 +24,6 @@
 // MAX rounds of updating each pair of nodes
 #define MAX_ROUNDS 6
 
-// parameters for calculating similarities
-#define ALPHA1 1
-#define BETA1 1
-#define ALPHA2 0.5
-#define BETA2 1
-
-// whether use subgraphs
-#define SUBGRAPHS 1
-
 // whether use multithread
 #define MULTITHREAD 1
 
@@ -62,7 +53,6 @@ private:
 	typedef double all_node_pairs[MAX_NODES][MAX_NODES]; // x_a, x
 
 	all_node_pairs sim_nodes;
-	all_node_pairs sim_subgraphs;
 	all_node_pairs last_round;
 	
 	struct match_edge {
@@ -76,20 +66,42 @@ private:
 	
 	vector<match_edge> ans_pairs;
 
+	struct heap {
+		struct heap_node {
+			int u, v;
+			heap_node(int _=0, int __=0): u(_), v(__) {}
+		};
+
+#define heap_fa(x) ((x)>>1)
+#define heap_lc(x) ((x)<<1)
+#define heap_rc(x) (((x)<<1)+1)
+#define heap_v(x) (owner->sim_nodes[nodes[x].u][nodes[x].v])
+#define heap_p(x) (heap_pos[nodes[x].u][nodes[x].v])
+		struct matcher *owner;
+		int len;
+		struct heap_node nodes[MAX_NODES*MAX_NODES*2];
+		all_node_pairs heap_pos;
+
+		heap(int n, int m, struct matcher *o);
+		void heap_down(int x);
+		void heap_up(int x);
+		void pop();
+
+	} * H;
+
 public:
 	matcher(class graph *g_a, class graph *g);
 	
 	void match();
+	void gen_ans_pairs();
 	
 	double calc_sim_nodes(int u, int v); // u from G_a, v from G
-	double calc_sim_subgraphs(int u, int v); // u, v are centers and from G_a, G perspectively
 	
 	void print(FILE *ou);
 };
 
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * args);
-void * calc_sim_subgraphs_pthread(void * args);
 #endif
 
 #endif /* match_hpp */
