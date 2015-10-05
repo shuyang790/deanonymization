@@ -20,7 +20,8 @@ int main(int argc, const char * argv[]) {
 	
 	matcher *M = new matcher(&G_a, &G);
 	M->match();
-	
+
+	M->gen_ans_pairs();
 	M->print(stdout);
 	
     return 0;
