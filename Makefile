@@ -1,5 +1,5 @@
 CC = g++
-CFLAG = -O0 -g -pthread
+CFLAG = -O3 -g -pthread
 EXE = main
 OBJ = main.o match.o graph.o thpool.o
 
