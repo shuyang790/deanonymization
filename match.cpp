@@ -43,8 +43,8 @@ double matcher::calc_sim_nodes(int u, int v) {
 	}
 	delete []flag_a;
 	delete []flag;
-	if (u%1000==0 && v%1000 == 0)
-		fprintf(stderr, "#sim_nodes(%d, %d) = %g#", u, v, w);
+	if (u%5000==0 && v%5000 == 0)
+		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
 	return sim_nodes[u][v] = w;
 }
 
@@ -80,14 +80,27 @@ void matcher::match() {
 		G->extract_subgraph(i);
 #endif
 
-	for (cT=0; ++cT < MAX_ROUNDS; ) {
+	for (cT=0; cT++ < MAX_ROUNDS; ) {
+
+		fprintf(stderr, "Processing round %d ... \r", cT);
 
 		// update node similarities for every pair of nodes
 		memcpy(last_round, sim_nodes, sizeof(sim_nodes));
+		/*
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				calc_sim_nodes_wrapper(i, j);
 			}
+		*/
+		int tmpCNT = 0;
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++){
+				sim_pairs[tmpCNT++] = node_pair(i, j, &sim_nodes);
+			}
+		sort(sim_pairs, sim_pairs + tmpCNT);
+		for (int i=0; i < (tmpCNT >> (cT-1)); i++)
+			calc_sim_nodes_wrapper(sim_pairs[i].u, sim_pairs[i].v);
+
 #if MULTITHREAD
 		thpool_wait(thpool);
 #endif
@@ -103,7 +116,8 @@ void matcher::match() {
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_nodes[i][j] /= max_ele_nodes;
 			}
-		fprintf(stderr, "cT = %d\n", cT);
+		fprintf(stderr, "Round %d processed (%d pairs updated)\n", 
+				cT, (tmpCNT >> (cT-1)));
 	}
 	
 	fprintf(stderr, "matcher info\n\t%d rounds, %.2lf seconds.\n", 
