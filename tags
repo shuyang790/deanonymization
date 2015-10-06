@@ -1,0 +1,143 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CC	Makefile	/^CC = g++$/;"	m
+CEIL	thpool.cpp	29;"	d	file:
+CFLAG	Makefile	/^CFLAG = -O3 -g -pthread$/;"	m
+EXE	Makefile	/^EXE = main$/;"	m
+G	match.hpp	/^	class graph * G;$/;"	m	class:matcher	typeref:class:matcher::graph
+G_a	match.hpp	/^	class graph * G_a;$/;"	m	class:matcher	typeref:class:matcher::graph
+H	match.hpp	/^	} * H;$/;"	m	class:matcher	typeref:struct:matcher::heap
+L	graph.hpp	22;"	d
+MAX_NANOSEC	thpool.cpp	28;"	d	file:
+MAX_NODES	graph.hpp	20;"	d
+MAX_ROUNDS	match.hpp	25;"	d
+MULTITHREAD	match.hpp	28;"	d
+OBJ	Makefile	/^OBJ = main.o match.o graph.o thpool.o$/;"	m
+PRINT_SIMI	match.hpp	22;"	d
+THPOOL_DEBUG	thpool.cpp	23;"	d	file:
+THPOOL_DEBUG	thpool.cpp	25;"	d	file:
+THREAD_POOL_SIZE	match.hpp	35;"	d
+_THPOOL_	thpool.hpp	8;"	d
+all_node_pairs	match.hpp	/^	typedef double all_node_pairs[MAX_NODES][MAX_NODES]; \/\/ x_a, x$/;"	t	class:matcher
+ans_pairs	match.hpp	/^	vector<match_edge> ans_pairs;$/;"	m	class:matcher
+arg	thpool.cpp	/^	void*  arg;                          \/* function's argument       *\/$/;"	m	struct:job	file:
+bsem	thpool.cpp	/^typedef struct bsem {$/;"	s	file:
+bsem	thpool.cpp	/^} bsem;$/;"	t	typeref:struct:bsem	file:
+bsem_init	thpool.cpp	/^static void bsem_init(bsem *bsem_p, int value) {$/;"	f	file:
+bsem_post	thpool.cpp	/^static void bsem_post(bsem *bsem_p) {$/;"	f	file:
+bsem_post_all	thpool.cpp	/^static void bsem_post_all(bsem *bsem_p) {$/;"	f	file:
+bsem_reset	thpool.cpp	/^static void bsem_reset(bsem *bsem_p) {$/;"	f	file:
+bsem_wait	thpool.cpp	/^static void bsem_wait(bsem* bsem_p) {$/;"	f	file:
+calc_sim_nodes	match.cpp	/^double matcher::calc_sim_nodes(int u, int v) {$/;"	f	class:matcher
+calc_sim_nodes_pthread	match.cpp	/^void * calc_sim_nodes_pthread(void * args) {$/;"	f
+calc_sim_nodes_wrapper	match.cpp	/^void matcher::calc_sim_nodes_wrapper(int i, int j){$/;"	f	class:matcher
+center	graph.hpp	/^		int center;$/;"	m	struct:graph::subgraph
+compare	compare.py	/^def compare(prog_output, correct_pair, num_nodes, output):$/;"	f
+cond	thpool.cpp	/^	pthread_cond_t   cond;$/;"	m	struct:bsem	file:
+edges	graph.hpp	/^	vector < vector<int> * > edges;$/;"	m	class:graph
+extract_neighbors	graph.cpp	/^vector<int> * graph::extract_neighbors(int node){$/;"	f	class:graph
+extract_subgraph	graph.cpp	/^graph::subgraph * graph::extract_subgraph(int node){$/;"	f	class:graph
+front	thpool.cpp	/^	job  *front;                         \/* pointer to front of queue *\/$/;"	m	struct:jobqueue	file:
+function	thpool.cpp	/^	void*  (*function)(void* arg);       \/* function pointer          *\/$/;"	m	struct:job	file:
+gen_ans_pairs	match.cpp	/^void matcher::gen_ans_pairs() {$/;"	f	class:matcher
+graph	graph.cpp	/^graph::graph(const char * file_name){$/;"	f	class:graph
+graph	graph.hpp	/^class graph {$/;"	c
+graph_hpp	graph.hpp	10;"	d
+has_jobs	thpool.cpp	/^	bsem *has_jobs;                      \/* flag as binary semaphore  *\/$/;"	m	struct:jobqueue	file:
+heap	match.cpp	/^matcher::heap::heap(int n, int m, struct matcher *o) {$/;"	f	class:matcher::heap
+heap	match.hpp	/^	struct heap {$/;"	s	class:matcher
+heap_down	match.cpp	/^void matcher::heap::heap_down(int x) {$/;"	f	class:matcher::heap
+heap_fa	match.hpp	90;"	d
+heap_lc	match.hpp	91;"	d
+heap_node	match.hpp	/^			heap_node(int _=0, int __=0): u(_), v(__) {}$/;"	f	struct:matcher::heap::heap_node
+heap_node	match.hpp	/^		struct heap_node {$/;"	s	struct:matcher::heap
+heap_p	match.hpp	94;"	d
+heap_pos	match.hpp	/^		all_node_pairs heap_pos;$/;"	m	struct:matcher::heap
+heap_rc	match.hpp	92;"	d
+heap_up	match.cpp	/^void matcher::heap::heap_up(int x){$/;"	f	class:matcher::heap
+heap_v	match.hpp	93;"	d
+id	thpool.cpp	/^	int       id;                        \/* friendly id               *\/$/;"	m	struct:thread	file:
+int_abs	match.cpp	/^int int_abs(int x){$/;"	f
+job	thpool.cpp	/^typedef struct job{$/;"	s	file:
+job	thpool.cpp	/^} job;$/;"	t	typeref:struct:job	file:
+jobqueue	thpool.cpp	/^typedef struct jobqueue{$/;"	s	file:
+jobqueue	thpool.cpp	/^} jobqueue;$/;"	t	typeref:struct:jobqueue	file:
+jobqueue_clear	thpool.cpp	/^static void jobqueue_clear(thpool_* thpool_p){$/;"	f	file:
+jobqueue_destroy	thpool.cpp	/^static void jobqueue_destroy(thpool_* thpool_p){$/;"	f	file:
+jobqueue_init	thpool.cpp	/^static int jobqueue_init(thpool_* thpool_p){$/;"	f	file:
+jobqueue_p	thpool.cpp	/^	jobqueue*  jobqueue_p;               \/* pointer to the job queue  *\/    $/;"	m	struct:thpool_	file:
+jobqueue_pull	thpool.cpp	/^static struct job* jobqueue_pull(thpool_* thpool_p){$/;"	f	file:
+jobqueue_push	thpool.cpp	/^static void jobqueue_push(thpool_* thpool_p, struct job* newjob){$/;"	f	file:
+last_round	match.hpp	/^	all_node_pairs last_round;$/;"	m	class:matcher
+len	match.hpp	/^		int len;$/;"	m	struct:matcher::heap
+len	thpool.cpp	/^	int   len;                           \/* number of jobs in queue   *\/$/;"	m	struct:jobqueue	file:
+main	create_small_data.py	/^def main(src_dir, dst_dir, file_name, flag):$/;"	f
+main	main.cpp	/^int main(int argc, const char * argv[]) {$/;"	f
+match	match.cpp	/^void matcher::match() {$/;"	f	class:matcher
+match_edge	match.hpp	/^		match_edge(int _u=0, int _v=0, double _w=0): u(_u), v(_v), w(_w) {}$/;"	f	struct:matcher::match_edge
+match_edge	match.hpp	/^	struct match_edge {$/;"	s	class:matcher
+match_hpp	match.hpp	10;"	d
+matcher	match.cpp	/^matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {$/;"	f	class:matcher
+matcher	match.hpp	/^class matcher {$/;"	c
+mutex	thpool.cpp	/^	pthread_mutex_t mutex;$/;"	m	struct:bsem	file:
+neighbors	graph.hpp	/^	vector <int> * neighbors[MAX_NODES];$/;"	m	class:graph
+node_pair	match.hpp	/^		node_pair(int U=0, int V=0): u(U), v(V) {}$/;"	f	struct:matcher::node_pair
+node_pair	match.hpp	/^	struct node_pair {$/;"	s	class:matcher
+nodes	graph.hpp	/^	vector <int> nodes;$/;"	m	class:graph
+nodes	match.hpp	/^		struct heap_node nodes[MAX_NODES*MAX_NODES*2];$/;"	m	struct:matcher::heap	typeref:struct:matcher::heap::heap_node
+nodes_per_level	graph.hpp	/^		vector<int> nodes_per_level[L];$/;"	m	struct:graph::subgraph
+num_edges	graph.hpp	/^	int num_edges;$/;"	m	class:graph
+num_limit	create_small_data.py	/^num_limit = 500$/;"	v
+num_nodes	graph.hpp	/^		int num_nodes;$/;"	m	struct:graph::subgraph
+num_nodes	graph.hpp	/^	int num_nodes;$/;"	m	class:graph
+num_nodes_seq	graph.hpp	/^		vector<int> num_nodes_seq;$/;"	m	struct:graph::subgraph
+num_threads_alive	thpool.cpp	/^	volatile int num_threads_alive;      \/* threads currently alive   *\/$/;"	m	struct:thpool_	file:
+num_threads_working	thpool.cpp	/^	volatile int num_threads_working;    \/* threads currently working *\/$/;"	m	struct:thpool_	file:
+operator <	match.hpp	/^		bool operator < (const match_edge & b) const {$/;"	f	struct:matcher::match_edge
+operator <	match.hpp	/^		bool operator < (const struct node_pair &b) const {$/;"	f	struct:matcher::node_pair
+owner	match.hpp	/^		struct matcher *owner;$/;"	m	struct:matcher::heap	typeref:struct:matcher::heap::matcher
+pop	match.cpp	/^void matcher::heap::pop(){$/;"	f	class:matcher::heap
+prev	thpool.cpp	/^	struct job*  prev;                   \/* pointer to previous job   *\/$/;"	m	struct:job	typeref:struct:job::job	file:
+print	match.cpp	/^void matcher::print(FILE *ou) {$/;"	f	class:matcher
+pthread	thpool.cpp	/^	pthread_t pthread;                   \/* pointer to actual thread  *\/$/;"	m	struct:thread	file:
+rear	thpool.cpp	/^	job  *rear;                          \/* pointer to rear  of queue *\/$/;"	m	struct:jobqueue	file:
+rev_edges	graph.hpp	/^	vector < vector<int> * > rev_edges;$/;"	m	class:graph
+rwmutex	thpool.cpp	/^	pthread_mutex_t rwmutex;             \/* used for queue r\/w access *\/$/;"	m	struct:jobqueue	file:
+sim_nodes	match.hpp	/^	all_node_pairs sim_nodes;$/;"	m	class:matcher
+sim_pairs	match.hpp	/^	} sim_pairs[MAX_NODES * MAX_NODES];$/;"	m	class:matcher	typeref:struct:matcher::node_pair
+sims	match.hpp	/^		all_node_pairs * sims;$/;"	m	struct:matcher::node_pair
+subgraph	graph.hpp	/^	struct subgraph {$/;"	s	class:graph
+subgraphs	graph.hpp	/^	subgraph * subgraphs[MAX_NODES];$/;"	m	class:graph
+thcount_lock	thpool.cpp	/^	pthread_mutex_t  thcount_lock;       \/* used for thread count etc *\/$/;"	m	struct:thpool_	file:
+thpool	match.hpp	/^static threadpool thpool;$/;"	v
+thpool_	thpool.cpp	/^typedef struct thpool_{$/;"	s	file:
+thpool_	thpool.cpp	/^} thpool_;$/;"	t	typeref:struct:thpool_	file:
+thpool_add_work	thpool.cpp	/^int thpool_add_work(thpool_* thpool_p, void *(*function_p)(void*), void* arg_p){$/;"	f
+thpool_destroy	thpool.cpp	/^void thpool_destroy(thpool_* thpool_p){$/;"	f
+thpool_init	thpool.cpp	/^struct thpool_* thpool_init(int num_threads){$/;"	f
+thpool_p	thpool.cpp	/^	struct thpool_* thpool_p;            \/* access to thpool          *\/$/;"	m	struct:thread	typeref:struct:thread::thpool_	file:
+thpool_pause	thpool.cpp	/^void thpool_pause(thpool_* thpool_p) {$/;"	f
+thpool_resume	thpool.cpp	/^void thpool_resume(thpool_* thpool_p) {$/;"	f
+thpool_wait	thpool.cpp	/^void thpool_wait(thpool_* thpool_p){$/;"	f
+thread	thpool.cpp	/^typedef struct thread{$/;"	s	file:
+thread	thpool.cpp	/^} thread;$/;"	t	typeref:struct:thread	file:
+thread_destroy	thpool.cpp	/^static void thread_destroy (thread* thread_p){$/;"	f	file:
+thread_do	thpool.cpp	/^static void* thread_do(struct thread* thread_p){$/;"	f	file:
+thread_hold	thpool.cpp	/^static void thread_hold () {$/;"	f	file:
+thread_init	thpool.cpp	/^static void thread_init (thpool_* thpool_p, struct thread** thread_p, int id){$/;"	f	file:
+threadpool	thpool.hpp	/^typedef struct thpool_* threadpool;$/;"	t	typeref:struct:thpool_
+threads	thpool.cpp	/^	thread**   threads;                  \/* pointer to threads        *\/$/;"	m	struct:thpool_	file:
+threads_keepalive	thpool.cpp	/^static volatile int threads_keepalive;$/;"	v	file:
+threads_on_hold	thpool.cpp	/^static volatile int threads_on_hold;$/;"	v	file:
+u	match.hpp	/^			int u, v;$/;"	m	struct:matcher::heap::heap_node
+u	match.hpp	/^		int u, v;$/;"	m	struct:matcher::match_edge
+u	match.hpp	/^		int u, v;$/;"	m	struct:matcher::node_pair
+v	match.hpp	/^			int u, v;$/;"	m	struct:matcher::heap::heap_node
+v	match.hpp	/^		int u, v;$/;"	m	struct:matcher::match_edge
+v	match.hpp	/^		int u, v;$/;"	m	struct:matcher::node_pair
+v	thpool.cpp	/^	int v;$/;"	m	struct:bsem	file:
+w	match.hpp	/^		double w;$/;"	m	struct:matcher::match_edge

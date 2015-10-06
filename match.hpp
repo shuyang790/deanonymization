@@ -22,7 +22,7 @@
 #define PRINT_SIMI 0
 
 // MAX rounds of updating each pair of nodes
-#define MAX_ROUNDS 6
+#define MAX_ROUNDS 5
 
 // whether use multithread
 #define MULTITHREAD 1
@@ -61,7 +61,8 @@ private:
 	struct node_pair {
 		int u, v;
 		all_node_pairs * sims;
-		node_pair(int U=0, int V=0): u(U), v(V) {}
+		node_pair(int U=0, int V=0, all_node_pairs *s=0): 
+			u(U), v(V), sims(s) {}
 		bool operator < (const struct node_pair &b) const {
 			return sims[u][v] > sims[b.u][b.v];
 		}
