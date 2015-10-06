@@ -46,15 +46,28 @@ static threadpool thpool;
 
 class matcher {
 private:
-	int num_ans_pairs;
+	
+	// graphs given
 	class graph * G_a;
 	class graph * G;
 
 	typedef double all_node_pairs[MAX_NODES][MAX_NODES]; // x_a, x
 
+	// matrix for sim_nodes
 	all_node_pairs sim_nodes;
 	all_node_pairs last_round;
-	
+
+	// sorted sim_nodes
+	struct node_pair {
+		int u, v;
+		all_node_pairs * sims;
+		node_pair(int U=0, int V=0): u(U), v(V) {}
+		bool operator < (const struct node_pair &b) const {
+			return sims[u][v] > sims[b.u][b.v];
+		}
+	} sim_pairs[MAX_NODES * MAX_NODES];
+
+	// match_edge structure
 	struct match_edge {
 		int u, v;
 		double w;
@@ -64,8 +77,10 @@ private:
 		}
 	};
 	
+	// answer sequence
 	vector<match_edge> ans_pairs;
 
+	// heap used when generating answer pairs
 	struct heap {
 		struct heap_node {
 			int u, v;
@@ -90,13 +105,19 @@ private:
 	} * H;
 
 public:
+
+	// initialize
 	matcher(class graph *g_a, class graph *g);
 	
+	// calculate sim_nodes
+	double calc_sim_nodes(int u, int v); // u from G_a, v from G
+	void calc_sim_nodes_wrapper(int u, int v);
+
+	// match and generate answer pairs
 	void match();
 	void gen_ans_pairs();
 	
-	double calc_sim_nodes(int u, int v); // u from G_a, v from G
-	
+	// print answer pairs
 	void print(FILE *ou);
 };
 

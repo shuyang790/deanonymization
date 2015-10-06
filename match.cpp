@@ -54,8 +54,19 @@ void * calc_sim_nodes_pthread(void * args) {
 	((struct matcher *)(((int**)args)[1]))->calc_sim_nodes(t[0], t[1]);
 	return NULL;
 }
-
 #endif
+
+void matcher::calc_sim_nodes_wrapper(int i, int j){
+#if MULTITHREAD
+	int ** t = new int* [2];
+	t[0] = new int[2];
+	t[0][0] = i, t[0][1] = j;
+	t[1] = (int*)this;
+	thpool_add_work(thpool, (calc_sim_nodes_pthread), (void *)t);
+#else
+	calc_sim_nodes(i, j);
+#endif
+}
 
 void matcher::match() {
 	clock_t time_start = clock();
@@ -75,15 +86,7 @@ void matcher::match() {
 		memcpy(last_round, sim_nodes, sizeof(sim_nodes));
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
-#if MULTITHREAD
-				int ** t = new int* [2];
-				t[0] = new int[2];
-				t[0][0] = i, t[0][1] = j;
-				t[1] = (int*)this;
-				thpool_add_work(thpool, (calc_sim_nodes_pthread), (void *)t);
-#else
-				calc_sim_nodes(i, j);
-#endif
+				calc_sim_nodes_wrapper(i, j);
 			}
 #if MULTITHREAD
 		thpool_wait(thpool);
@@ -186,15 +189,7 @@ void matcher::gen_ans_pairs() {
 		for (vector <int> :: iterator i=nbs_a.begin(); i!=nbs_a.end(); i++)
 			for (vector <int> :: iterator j=nbs.begin(); j!=nbs.end(); j++){
 				cU ++;
-#if MULTITHREAD
-				int ** t = new int* [2];
-				t[0] = new int[2];
-				t[0][0] = *i, t[0][1] = *j;
-				t[1] = (int*)this;
-				thpool_add_work(thpool, (calc_sim_nodes_pthread), (void *)t);
-#else
-				calc_sim_nodes(*i, *j);
-#endif
+				calc_sim_nodes_wrapper(*i, *j);
 			}
 #if MULTITHREAD
 		thpool_wait(thpool);
