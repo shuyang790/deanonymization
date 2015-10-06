@@ -96,11 +96,6 @@ void matcher::match() {
 				double tmp = sim_nodes[i][j];
 				max_ele_nodes = max(max_ele_nodes, tmp);
 			}
-		/*
-	for (int i=1; i<=5; i++, putchar(10))
-		for (int j=1; j<=4; j++)
-			printf("\t\tsim[%d][%d]=%g\t", i, j, sim_nodes[i][j]);
-			*/
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_nodes[i][j] /= max_ele_nodes;
@@ -164,12 +159,6 @@ void matcher::gen_ans_pairs() {
 
 	memcpy(last_round, sim_nodes, sizeof(sim_nodes));
 	H = new heap(G_a->num_nodes, G->num_nodes, this);
-//	for (int i=1; i<=5; i++, putchar(10))
-//		for (int j=1; j<=4; j++)
-//			printf("\t\tsim[%d][%d]=%g\t", i, j, sim_nodes[i][j]);
-//	for (int i=1; i<=H->len; i++)
-//		printf("\tHeap[%d]: sim(%d, %d) = %g\n",
-//				i, H->nodes[i].u, H->nodes[i].v, sim_nodes[H->nodes[i].u][H->nodes[i].v]);
 
 	for (int u, v; H->len > 0; ) {
 		vector <int> nbs_a;
