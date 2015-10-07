@@ -43,9 +43,8 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 
 	double w = 0; // sum(sum_per_level(sim_nodes))
 	vector <match_edge> match_edges;
-	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
-	memset(flag_a, 0, MAX_NODES);
-	memset(flag, 0, MAX_NODES);
+	set <int> flag_a;
+	set <int> flag;
 	for (int i=0; i < level; i++) {
 		for (vector<int> :: iterator j = subg_a->nodes_per_level[i].begin(); j!=subg_a->nodes_per_level[i].end(); j++) 
 			for (vector<int> :: iterator k = subg->nodes_per_level[i].begin(); k!=subg->nodes_per_level[i].end(); k++) 
@@ -53,14 +52,12 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 	}
 	sort(match_edges.begin(), match_edges.end());
 	for (vector<match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
-		if (!flag_a[it->u] && !flag[it->v]) {
-			flag_a[it->u] = 1;
-			flag[it->v] = 1;
+		if (flag_a.find(it->u) == flag_a.end() && flag.find(it->v) == flag.end()) {
+			flag_a.insert(it->u);
+			flag.insert(it->v);
 			w += it->w;
 		}
 	}
-	delete []flag_a;
-	delete []flag;
 //	if (u%5000==0 && v%5000 == 0)
 //		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
 	return sim_nodes[u][v] = w;
@@ -69,7 +66,7 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * args) {
 	int * t = ((int**)args)[0];
-	((struct matcher *)(((int**)args)[1]))->calc_sim_nodes(t[0], t[1], t[2]);
+	((class matcher *)(((int**)args)[1]))->calc_sim_nodes(t[0], t[1], t[2]);
 	return NULL;
 }
 #endif
