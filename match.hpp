@@ -93,12 +93,12 @@ private:
 #define heap_rc(x) (((x)<<1)+1)
 #define heap_v(x) (owner->sim_nodes[nodes[x].u][nodes[x].v])
 #define heap_p(x) (heap_pos[nodes[x].u][nodes[x].v])
-		struct matcher *owner;
+		class matcher *owner;
 		int len;
 		struct heap_node nodes[MAX_NODES*MAX_NODES*2];
 		all_node_pairs heap_pos;
 
-		heap(int n, int m, struct matcher *o);
+		heap(int n, int m, class matcher *o);
 		void heap_down(int x);
 		void heap_up(int x);
 		void pop();
@@ -111,15 +111,20 @@ public:
 	matcher(class graph *g_a, class graph *g);
 	
 	// calculate sim_nodes
-	double calc_sim_nodes(int u, int v); // u from G_a, v from G
-	void calc_sim_nodes_wrapper(int u, int v);
+	double calc_sim_nodes(int u, int v, int level); // u from G_a, v from G
+	void calc_sim_nodes_wrapper(int u, int v, bool flag);
 
 	// match and generate answer pairs
 	void match();
 	void gen_ans_pairs();
+	void gen_ans_pairs_oldway();
 	
 	// print answer pairs
 	void print(FILE *ou);
+
+	// debug
+	void debug_print();
+	void record_matrix();
 };
 
 #if MULTITHREAD
