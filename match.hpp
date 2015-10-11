@@ -27,12 +27,16 @@
 // whether use multithread
 #define MULTITHREAD 1
 
+#define USE_ONLY_NEIGHBORS  /* TODO */
+
+#define AVERAGE_EACH_CALC 0
+
 #if MULTITHREAD
 
 #include "thpool.hpp"
 
 // size of the thread pool
-#define THREAD_POOL_SIZE 12
+#define THREAD_POOL_SIZE 3
 
 #endif
 
@@ -98,10 +102,12 @@ private:
 		struct heap_node nodes[MAX_NODES*MAX_NODES*2];
 		all_node_pairs heap_pos;
 
+		heap(class matcher *o);
 		heap(int n, int m, class matcher *o);
 		void heap_down(int x);
 		void heap_up(int x);
 		void pop();
+		void push(int, int);
 
 	} * H;
 
@@ -116,6 +122,7 @@ public:
 
 	// match and generate answer pairs
 	void match();
+	void gen_ans_pairs_iter();
 	void gen_ans_pairs();
 	void gen_ans_pairs_oldway();
 	
@@ -125,6 +132,7 @@ public:
 	// debug
 	void debug_print();
 	void record_matrix();
+	void load_matrix();
 };
 
 #if MULTITHREAD
