@@ -74,7 +74,7 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 #endif
 //	if (u%5000==0 && v%5000 == 0)
 //		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
-	return sim_nodes[u][v] = w;
+	return sim_nodes[u][v] = w + 1;
 }
 
 #if MULTITHREAD
@@ -298,6 +298,8 @@ void matcher::gen_ans_pairs() {
 		for (vector <int> :: iterator i=nbs_a.begin(); i!=nbs_a.end(); i++)
 			for (vector <int> :: iterator j=nbs.begin(); j!=nbs.end(); j++){
 				sim_nodes[*i][*j] *= 1.05;
+				if (sim_nodes[*i][*j] > 1)
+					sim_nodes[*i][*j] = 1;
 				H->heap_down(H->heap_pos[*i][*j]);
 				H->heap_up(H->heap_pos[*i][*j]);
 			}

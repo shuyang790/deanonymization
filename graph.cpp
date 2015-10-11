@@ -40,10 +40,11 @@ vector<int> * graph::extract_neighbors(int node){
 	vector<int> * re = new vector<int>;
 	for (vector<int> :: iterator it=edges[node]->begin(); it!=edges[node]->end(); it++)
 		re->push_back(*it);
-	/*for (vector<int> :: iterator it=rev_edges[node]->begin(); it!=rev_edges[node]->end(); it++)
+	/* TODO: decide whether to use two directions or one? */
+	for (vector<int> :: iterator it=rev_edges[node]->begin(); it!=rev_edges[node]->end(); it++)
 		re->push_back(*it);
 	sort(re->begin(), re->end());
-	unique(re->begin(), re->end());*/
+	unique(re->begin(), re->end());
 	return neighbors[node] = re;
 }
 
