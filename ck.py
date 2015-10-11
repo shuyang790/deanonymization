@@ -8,7 +8,7 @@ for line in lines:
     if a==b:
         cnt1 += 1
 
-f = open("T", "r")
+f = open("R", "r")
 lines = f.readlines()
 f.close()
 cnt2 = 0

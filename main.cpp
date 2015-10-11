@@ -17,8 +17,10 @@ int main(int argc, const char * argv[]) {
 	//graph G_a("anonymized.txt");
 	//graph G("crawled.txt");
 
-	graph G_a("data/100\%/anonymized.txt");
-	graph G("data/100\%/crawled.txt");
+	graph G_a("data/50\%/anonymized.txt");
+	graph G("data/50\%/crawled.txt");
+	//graph G_a("data/100\%/anonymized.txt");
+	//graph G("data/100\%/crawled.txt");
 	
 	matcher *M = new matcher(&G_a, &G);
 #if DEBUG
@@ -26,6 +28,7 @@ int main(int argc, const char * argv[]) {
 #endif
 	M->match();
 
+	//M->load_matrix();
 #if DEBUG
 	M->record_matrix();
 	M->gen_ans_pairs_oldway();
@@ -34,7 +37,7 @@ int main(int argc, const char * argv[]) {
 	fclose(backup_res);
 	fprintf(stderr, "old ways result generated in `bak_res.txt`.\n");
 #endif
-	M->gen_ans_pairs();
+	//M->gen_ans_pairs();
 	M->print(stdout);
 	
     return 0;

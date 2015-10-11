@@ -38,14 +38,25 @@ void matcher::debug_print() {
 }
 
 double matcher::calc_sim_nodes(int u, int v, int level) {
+#ifdef USE_ONLY_NEIGHBORS
+	level = 1;
+#endif
+
 	graph::subgraph * subg_a = G_a->extract_subgraph(u);
 	graph::subgraph * subg = G->extract_subgraph(v);
 
 	double w = 0; // sum(sum_per_level(sim_nodes))
+#if AVERAGE_EACH_CALC
+	int sum = 0;
+#endif
 	vector <match_edge> match_edges;
 	set <int> flag_a;
 	set <int> flag;
 	for (int i=0; i < level; i++) {
+#if AVERAGE_EACH_CALC
+		sum += min(subg_a->nodes_per_level[i].size(),
+				subg->nodes_per_level[i].size());
+#endif
 		for (vector<int> :: iterator j = subg_a->nodes_per_level[i].begin(); j!=subg_a->nodes_per_level[i].end(); j++) 
 			for (vector<int> :: iterator k = subg->nodes_per_level[i].begin(); k!=subg->nodes_per_level[i].end(); k++) 
 				match_edges.push_back(match_edge(*j, *k, last_round[*j][*k]));
@@ -58,6 +69,9 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 			w += it->w;
 		}
 	}
+#if AVERAGE_EACH_CALC
+	w /= sum;
+#endif
 //	if (u%5000==0 && v%5000 == 0)
 //		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
 	return sim_nodes[u][v] = w;
@@ -96,6 +110,16 @@ void matcher::record_matrix() {
 	}
 	fclose(ou);
 	fprintf(stderr, "matrix saved in `matrix.txt`.\n");
+}
+
+void matcher::load_matrix() {
+	FILE *in = fopen("matrix.txt", "r");
+	fscanf(in, "%d%d", &(G_a->num_nodes), &(G->num_nodes));
+	for (int i = 1; i <= G_a->num_nodes; i++)
+		for (int j = 1; j <= G->num_nodes; j++)
+			fscanf(in, "%lf", sim_nodes[i]+j);
+	fclose(in);
+	fprintf(stderr, "Matrix read from `matrix.txt`\n");
 }
 
 void matcher::match() {
@@ -152,7 +176,12 @@ void matcher::match() {
 	}
 	
 	fprintf(stderr, "matcher info\n\t%d rounds, %.2lf seconds.\n", 
-			cT, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
+			MAX_ROUNDS, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
+}
+
+matcher::heap::heap(class matcher *o) {
+	len = 0;
+	owner = o;
 }
 
 matcher::heap::heap(int n, int m, class matcher *o) {
@@ -165,6 +194,15 @@ matcher::heap::heap(int n, int m, class matcher *o) {
 		}
 	for (int i=len/2; i>0; i--)
 		heap_down(i);
+}
+
+void matcher::heap::push(int u, int v) {
+	int pos = heap_pos[u][v];
+	if (pos <= len && nodes[pos].u == u && nodes[pos].v == v)
+		return;
+	nodes[++len] = heap_node(u, v);
+	heap_pos[u][v] = len;
+	heap_up(len);
 }
 
 void matcher::heap::heap_down(int x) {
@@ -220,6 +258,62 @@ void matcher::gen_ans_pairs_oldway() {
 
 void matcher::gen_ans_pairs() {
 	clock_t time_start = clock();
+	ans_pairs.clear();
+	vector<match_edge> match_edges;
+	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
+	memset(flag_a, 0, MAX_NODES);
+	memset(flag, 0, MAX_NODES);
+
+	H = new heap(G_a->num_nodes, G->num_nodes, this);
+	
+	vector <int> nbs_a;
+	vector <int> nbs;
+	
+	for (int u, v; H->len > 0; ) {
+		
+		// get heap.top and check conflicts
+		u = H->nodes[1].u, v = H->nodes[1].v;
+		if (flag_a[u] || flag[v]) 
+			goto next_round;
+		
+		// add as an answer pair
+		ans_pairs.push_back(match_edge(u, v, sim_nodes[u][v]));
+		flag_a[u] = 1;
+		flag[v] = 1;
+
+		// add neighbors to heap H
+		nbs_a.clear(), nbs.clear();
+		for (vector <int>::iterator i=G_a->edges[u]->begin(); i!=G_a->edges[u]->end(); i++)
+			if (!flag_a[*i])
+				nbs_a.push_back(*i);
+		for (vector <int>::iterator i=G_a->rev_edges[u]->begin(); i!=G_a->rev_edges[u]->end(); i++)
+			if (!flag_a[*i])
+				nbs_a.push_back(*i);
+		for (vector <int>::iterator j=G->edges[v]->begin(); j!=G->edges[v]->end(); j++)
+			if (!flag[*j])
+				nbs.push_back(*j);
+		for (vector <int>::iterator j=G->rev_edges[v]->begin(); j!=G->rev_edges[v]->end(); j++)
+			if (!flag[*j])
+				nbs.push_back(*j);
+		for (vector <int> :: iterator i=nbs_a.begin(); i!=nbs_a.end(); i++)
+			for (vector <int> :: iterator j=nbs.begin(); j!=nbs.end(); j++){
+				sim_nodes[*i][*j] *= 1.05;
+				H->heap_down(H->heap_pos[*i][*j]);
+				H->heap_up(H->heap_pos[*i][*j]);
+			}
+next_round:
+		H->pop();
+	}
+
+	delete H;
+	delete []flag_a;
+	delete []flag;
+	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n", 
+			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
+}
+
+void matcher::gen_ans_pairs_iter() {
+	clock_t time_start = clock();
 	int cU=0;
 
 	ans_pairs.clear();
@@ -273,6 +367,8 @@ next_round:
 
 	delete []flag_a;
 	delete []flag;
+	delete H;
+	H = 0;
 	
 	fprintf(stderr, "answer pairs generated.\n\t%d updates, %.2lf seconds.\n", 
 			cU, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
