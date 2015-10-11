@@ -37,7 +37,7 @@ int main(int argc, const char * argv[]) {
 	fclose(backup_res);
 	fprintf(stderr, "old ways result generated in `bak_res.txt`.\n");
 #endif
-	//M->gen_ans_pairs();
+	M->gen_ans_pairs();
 	M->print(stdout);
 	
     return 0;
