@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <math.h>
 #include <map>
 #include <time.h>
@@ -50,7 +51,7 @@ static threadpool thpool;
 
 class matcher {
 private:
-	
+
 	// graphs given
 	class graph * G_a;
 	class graph * G;
@@ -61,11 +62,15 @@ private:
 	all_node_pairs sim_nodes;
 	all_node_pairs last_round;
 
+	// generate passage for word2vec
+	void gen_passage();
+	void gen_random_walk(class graph *, int, int, int, FILE *);
+
 	// sorted sim_nodes
 	struct node_pair {
 		int u, v;
 		all_node_pairs * sims;
-		node_pair(int U=0, int V=0, all_node_pairs *s=0): 
+		node_pair(int U=0, int V=0, all_node_pairs *s=0):
 			u(U), v(V), sims(s) {}
 		bool operator < (const struct node_pair &b) const {
 			return sims[u][v] > sims[b.u][b.v];
@@ -81,7 +86,7 @@ private:
 			return w > b.w;
 		}
 	};
-	
+
 	// answer sequence
 	vector<match_edge> ans_pairs;
 
@@ -115,17 +120,18 @@ public:
 
 	// initialize
 	matcher(class graph *g_a, class graph *g);
-	
+
 	// calculate sim_nodes
 	double calc_sim_nodes(int u, int v, int level); // u from G_a, v from G
-	void calc_sim_nodes_wrapper(int u, int v, bool flag);
+	void calc_sim_nodes_wrapper(int u, int v, bool flag=0);
 
 	// match and generate answer pairs
-	void match();
+	void gen_sim_matrix_simranc();
+	void gen_sim_matrix_word2vec();
 	void gen_ans_pairs_iter();
 	void gen_ans_pairs();
 	void gen_ans_pairs_oldway();
-	
+
 	// print answer pairs
 	void print(FILE *ou);
 
@@ -138,5 +144,7 @@ public:
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * args);
 #endif
+
+double cos_analogy(double *a, double *b, int len);
 
 #endif /* match_hpp */

@@ -32,7 +32,7 @@ void matcher::debug_print() {
 		S += subg->num_nodes_seq[0] * subg->num_nodes_seq[0];
 		S += subg->num_nodes_seq[1] * subg->num_nodes_seq[1];
 	}
-	fprintf(ou, "Average neighbor number (G_a): %d %d\t#%d\n", 
+	fprintf(ou, "Average neighbor number (G_a): %d %d\t#%d\n",
 			sum[0] / G_a->num_nodes, sum[1] / G->num_nodes, S);
 	fclose(ou);
 }
@@ -57,8 +57,8 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 		sum += min(subg_a->nodes_per_level[i].size(),
 				subg->nodes_per_level[i].size());
 #endif
-		for (vector<int> :: iterator j = subg_a->nodes_per_level[i].begin(); j!=subg_a->nodes_per_level[i].end(); j++) 
-			for (vector<int> :: iterator k = subg->nodes_per_level[i].begin(); k!=subg->nodes_per_level[i].end(); k++) 
+		for (vector<int> :: iterator j = subg_a->nodes_per_level[i].begin(); j!=subg_a->nodes_per_level[i].end(); j++)
+			for (vector<int> :: iterator k = subg->nodes_per_level[i].begin(); k!=subg->nodes_per_level[i].end(); k++)
 				match_edges.push_back(match_edge(*j, *k, last_round[*j][*k]));
 	}
 	sort(match_edges.begin(), match_edges.end());
@@ -74,7 +74,7 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 #endif
 //	if (u%5000==0 && v%5000 == 0)
 //		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
-	return sim_nodes[u][v] = w + 1;
+	return sim_nodes[u][v] = w ;
 }
 
 #if MULTITHREAD
@@ -122,7 +122,72 @@ void matcher::load_matrix() {
 	fprintf(stderr, "Matrix read from `matrix.txt`\n");
 }
 
-void matcher::match() {
+void matcher::gen_random_walk(class graph *G, int start, int maxlen, int delta, FILE * ou) {
+	for (int nxt, idx, cur = start; maxlen > 0; maxlen--, cur = nxt){
+		if (! G->edges[cur]->size())
+			break;
+		idx = rand() % (G->edges[cur]->size());
+		nxt = (*(G->edges[cur]))[idx];
+		fprintf(ou, "%d ", cur + delta);
+		if (nxt == start)
+			break;
+	}
+	fprintf(ou, "\n");fflush(ou);
+}
+
+void matcher::gen_passage() {
+	FILE * psg = fopen("passage.txt", "w");
+	// TODO
+#define GAMMA 30
+#define MAXLEN 40
+	srand(time(0));
+	for (int i=1; i<=G_a->num_nodes; i++)
+		for (int j=0; j<GAMMA; j++)
+			gen_random_walk(G_a, i, MAXLEN, 0, psg);
+	for (int i=1; i<=G->num_nodes; i++)
+		for (int j=0; j<GAMMA; j++)
+			gen_random_walk(G, i, MAXLEN, G_a->num_nodes, psg);
+	fclose(psg);
+	fprintf(stderr, "passage generated.\n");
+}
+
+void matcher::gen_sim_matrix_word2vec() {
+	// generate passage
+	gen_passage();
+
+	// train node vectors
+	system("./word2vec-read-only/word2vec -train passage.txt -output vectors.txt -cbow 0 -size 300 -window 5 -negative 5 -hs 1 -sample 1e-5 -threads 3 -binary 0 -iter 15");
+
+	// read node vectors
+	FILE *in = fopen("vectors.txt", "r");
+	int tot_nodes = G_a->num_nodes + G->num_nodes;
+	double ** vectors = new double * [tot_nodes+1];
+	for (int i=1; i<=tot_nodes; i++)
+		vectors[i] = new double [300];
+	for (int i=0, j; i<tot_nodes; i++){
+		fscanf(in, "%d", &j);
+		for (int k=0; k<300; k++)
+			fscanf(in, "%lf", vectors[j]+k);
+	}
+	fclose(in);
+
+	// generate matrix
+	for (int i=1; i<=G_a->num_nodes; i++)
+		for (int j=1; j<=G->num_nodes; j++)
+			sim_nodes[i][j] = cos_analogy(vectors[i], vectors[j+G_a->num_nodes], 300);
+}
+
+double cos_analogy(double *a, double *b, int len) {
+	double re=0, sa=0, sb=0;
+	for (int i=0; i<len; i++){
+		re += a[i] * b[i];
+		sa += a[i] * a[i];
+		sb += b[i] * b[i];
+	}
+	return fabs(re) / sqrt(sa * sb);
+}
+
+void matcher::gen_sim_matrix_simranc() {
 	clock_t time_start = clock();
 	int cT;
 
@@ -140,21 +205,22 @@ void matcher::match() {
 
 		// update node similarities for every pair of nodes
 		memcpy(last_round, sim_nodes, sizeof(sim_nodes));
-		/*
+
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				calc_sim_nodes_wrapper(i, j);
 			}
-		*/
 		int tmpCNT = 0;
+		/*
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_pairs[tmpCNT++] = node_pair(i, j, &sim_nodes);
 			}
 		sort(sim_pairs, sim_pairs + tmpCNT);
 		for (int i=0; i < tmpCNT; i++)
-			calc_sim_nodes_wrapper(sim_pairs[i].u, sim_pairs[i].v, 
+			calc_sim_nodes_wrapper(sim_pairs[i].u, sim_pairs[i].v,
 					i < (tmpCNT >> (cT-1)));
+		*/
 
 #if MULTITHREAD
 		thpool_wait(thpool);
@@ -171,11 +237,11 @@ void matcher::match() {
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_nodes[i][j] /= max_ele_nodes;
 			}
-		fprintf(stderr, "Round %d processed (%d pairs updated)\n", 
+		fprintf(stderr, "Round %d processed (%d pairs updated)\n",
 				cT, (tmpCNT >> (cT-1)));
 	}
-	
-	fprintf(stderr, "matcher info\n\t%d rounds, %.2lf seconds.\n", 
+
+	fprintf(stderr, "matcher info\n\t%d rounds, %.2lf seconds.\n",
 			MAX_ROUNDS, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
 
@@ -265,17 +331,17 @@ void matcher::gen_ans_pairs() {
 	memset(flag, 0, MAX_NODES);
 
 	H = new heap(G_a->num_nodes, G->num_nodes, this);
-	
+
 	vector <int> nbs_a;
 	vector <int> nbs;
-	
+
 	for (int u, v; H->len > 0; ) {
-		
+
 		// get heap.top and check conflicts
 		u = H->nodes[1].u, v = H->nodes[1].v;
-		if (flag_a[u] || flag[v]) 
+		if (flag_a[u] || flag[v])
 			goto next_round;
-		
+
 		// add as an answer pair
 		ans_pairs.push_back(match_edge(u, v, sim_nodes[u][v]));
 		flag_a[u] = 1;
@@ -310,7 +376,7 @@ next_round:
 	delete H;
 	delete []flag_a;
 	delete []flag;
-	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n", 
+	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n",
 			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
 
@@ -330,12 +396,12 @@ void matcher::gen_ans_pairs_iter() {
 	for (int u, v; H->len > 0; ) {
 		vector <int> nbs_a;
 		vector <int> nbs;
-		
+
 		// get heap.top and check conflicts
 		u = H->nodes[1].u, v = H->nodes[1].v;
-		if (flag_a[u] || flag[v]) 
+		if (flag_a[u] || flag[v])
 			goto next_round;
-		
+
 		// add as an answer pair
 		ans_pairs.push_back(match_edge(u, v, sim_nodes[u][v]));
 		flag_a[u] = 1;
@@ -371,8 +437,8 @@ next_round:
 	delete []flag;
 	delete H;
 	H = 0;
-	
-	fprintf(stderr, "answer pairs generated.\n\t%d updates, %.2lf seconds.\n", 
+
+	fprintf(stderr, "answer pairs generated.\n\t%d updates, %.2lf seconds.\n",
 			cU, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
 
