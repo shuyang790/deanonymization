@@ -1,3 +1,4 @@
+import sys
 
 def compare(prog_output, correct_pair, num_nodes, output):
 	f_p = open(prog_output)
@@ -17,7 +18,8 @@ def compare(prog_output, correct_pair, num_nodes, output):
 	i = 1
 	correct = 0
 	for p_line in p_lines:
-		print ("dealing with No. %d\r" % i)
+		print "dealing with No. " + str(i) + "\r",
+                sys.stdout.flush()
 		eles = p_line.split()
 		if eval(eles[1]) == dic[eval(eles[0])]:
 			correct += 1

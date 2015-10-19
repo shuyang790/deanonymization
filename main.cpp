@@ -13,7 +13,7 @@
 #define DEBUG 1
 
 int main(int argc, const char * argv[]) {
-	
+
 	//graph G_a("anonymized.txt");
 	//graph G("crawled.txt");
 
@@ -21,12 +21,13 @@ int main(int argc, const char * argv[]) {
 	graph G("data/50\%/crawled.txt");
 	//graph G_a("data/100\%/anonymized.txt");
 	//graph G("data/100\%/crawled.txt");
-	
+
 	matcher *M = new matcher(&G_a, &G);
 #if DEBUG
 	M->debug_print();
 #endif
-	M->match();
+//	M->gen_sim_matrix_simranc();
+	M->gen_sim_matrix_word2vec();
 
 	//M->load_matrix();
 #if DEBUG
@@ -39,6 +40,6 @@ int main(int argc, const char * argv[]) {
 #endif
 	M->gen_ans_pairs();
 	M->print(stdout);
-	
+
     return 0;
 }
