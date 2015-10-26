@@ -206,12 +206,14 @@ void matcher::gen_sim_matrix_simranc() {
 		// update node similarities for every pair of nodes
 		memcpy(last_round, sim_nodes, sizeof(sim_nodes));
 
+		/*
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				calc_sim_nodes_wrapper(i, j);
 			}
+			*/
 		int tmpCNT = 0;
-		/*
+
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_pairs[tmpCNT++] = node_pair(i, j, &sim_nodes);
@@ -219,8 +221,7 @@ void matcher::gen_sim_matrix_simranc() {
 		sort(sim_pairs, sim_pairs + tmpCNT);
 		for (int i=0; i < tmpCNT; i++)
 			calc_sim_nodes_wrapper(sim_pairs[i].u, sim_pairs[i].v,
-					i < (tmpCNT >> (cT-1)));
-		*/
+					i > 2000);
 
 #if MULTITHREAD
 		thpool_wait(thpool);
