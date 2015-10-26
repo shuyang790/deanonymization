@@ -26,8 +26,8 @@ int main(int argc, const char * argv[]) {
 #if DEBUG
 	M->debug_print();
 #endif
-//	M->gen_sim_matrix_simranc();
-	M->gen_sim_matrix_word2vec();
+	M->gen_sim_matrix_simranc();
+	//M->gen_sim_matrix_word2vec();
 
 	//M->load_matrix();
 #if DEBUG
