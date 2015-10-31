@@ -28,7 +28,7 @@
 // whether use multithread
 #define MULTITHREAD 1
 
-//#define USE_ONLY_NEIGHBORS  /* TODO */
+#define USE_ONLY_NEIGHBORS  /* TODO */
 
 #define AVERAGE_EACH_CALC 0
 
@@ -37,7 +37,7 @@
 #include "thpool.hpp"
 
 // size of the thread pool
-#define THREAD_POOL_SIZE 14
+#define THREAD_POOL_SIZE 10
 
 #endif
 
