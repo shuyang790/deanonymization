@@ -49,6 +49,16 @@ int int_abs(int);
 static threadpool thpool;
 #endif
 
+// match_edge structure
+struct match_edge {
+	int u, v;
+	double w;
+	match_edge(int _u=0, int _v=0, double _w=0): u(_u), v(_v), w(_w) {}
+	bool operator < (const match_edge & b) const {
+		return w > b.w;
+	}
+};
+
 class matcher {
 private:
 
@@ -76,16 +86,6 @@ private:
 			return sims[u][v] > sims[b.u][b.v];
 		}
 	} sim_pairs[MAX_NODES * MAX_NODES];
-
-	// match_edge structure
-	struct match_edge {
-		int u, v;
-		double w;
-		match_edge(int _u=0, int _v=0, double _w=0): u(_u), v(_v), w(_w) {}
-		bool operator < (const match_edge & b) const {
-			return w > b.w;
-		}
-	};
 
 	// answer sequence
 	vector<match_edge> ans_pairs;
@@ -139,6 +139,8 @@ public:
 	void debug_print();
 	void record_matrix();
 	void load_matrix();
+
+	friend class analyst;
 };
 
 #if MULTITHREAD
