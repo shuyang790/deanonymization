@@ -9,6 +9,7 @@
 #include <cstdio>
 #include "graph.hpp"
 #include "match.hpp"
+#include "data_analysis.hpp"
 
 #define DEBUG 1
 

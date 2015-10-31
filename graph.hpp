@@ -30,7 +30,7 @@ private:
 	vector <int> nodes;
 	vector < vector<int> * > edges;
 	vector < vector<int> * > rev_edges;
-	
+
 	struct subgraph {
 		int num_nodes;
 		int center;
@@ -43,11 +43,12 @@ private:
 
 public:
 	graph(const char * file_name);
-	
+
 	subgraph * extract_subgraph(int node);
 	vector<int> * extract_neighbors(int node);
-	
+
 	friend class matcher;
+	friend class analyst;
 };
 
 #endif /* graph_hpp */

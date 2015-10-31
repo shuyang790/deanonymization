@@ -211,9 +211,9 @@ void matcher::gen_sim_matrix_simranc() {
 			for (int j=1; j<=G->num_nodes; j++){
 				calc_sim_nodes_wrapper(i, j);
 			}
-		/*
 		int tmpCNT = 0;
 
+		/*
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_pairs[tmpCNT++] = node_pair(i, j, &sim_nodes);
