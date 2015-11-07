@@ -214,18 +214,62 @@ void matcher::gen_ans_pairs() {
 
 	/*
 	 * TODO
-	 *	count degrees deg[]
 	 *	match nodes whose degree > deg_thrsd (deg_thrsd=3)
 	 *	deal with nodes left (choose according to neighbor matching):
 	 *		for node u left:
 	 *			for node v in neighbors(u) and v is matched:
-	 *				for r in neighbor(match[v]):
+	 *				for r in neighbor(match[v]) and r is not matched:
 	 *					weight[r] += simi[u][r]
 	 *		match[u] = v, where weight[v] = max(weight[])
 	 */
 
+	const int deg_thrsd = 3;
 
+	int * match = new int[MAX_NODES];
 
+	for (int i=1; i <= G_a->num_nodes; i++)
+		for (int j=1; j <= G->num_nodes; j++)
+			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
+	sort(match_edges.begin(), match_edges.end());
+	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
+		if (G_a->edges[it->u]->size() > deg_thrsd && !flag_a[it->u] && !flag[it->v]) {
+			flag_a[it->u] = 1;
+			flag[it->v] = 1;
+			match[it->u] = it->v;
+			ans_pairs.push_back(*it);
+		}
+	}
+
+	queue <int> Q;
+
+	for (int i=1; i <= G_a->num_nodes; i++)
+		if (!flag_a[i])
+			Q.push(i);
+	for (int i, t; !Q.empty(); ) {
+		i = Q.front();
+		Q.pop();
+		if (!flag_a[i]) {
+			map <int, double> weight;
+			for (vector <int> :: iterator j = G_a->edges[i]->begin(); j != G_a->edges[i]->end(); j++)
+				if (flag_a[*j]) {
+					for (vector <int> :: iterator k = G->edges[match[*j]]->begin(); k != G->edges[match[*j]]->end(); k++)
+						weight[*k] += sim_nodes[i][*k];
+				}
+			if (!weight.size()) {
+				Q.push(i);
+				continue;
+			}
+			flag_a[i] = 1;
+			double score_t = 0;
+			for (map <int, double> :: iterator j = weight.begin(); j != weight.end(); j++)
+				if (j->second > score_t)
+					t = j->first;
+			match[i] = t;
+			ans_pairs.push_back(match_edge(i, match[i]));
+		}
+	}
+
+	delete []match;
 	delete []flag_a;
 	delete []flag;
 	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n",
