@@ -35,6 +35,8 @@ void analyst::analysis(class matcher &M) {
 
 	FILE * ana = fopen("analysis.txt", "w");
 	for (int i=0; i < M.ans_pairs.size(); i++) {
+		if (M.ans_pairs[i].u != correct_match[M.ans_pairs[i].v])
+			fprintf(ana, "@@@\t");
 		fprintf(ana, "Node \t%d (a: \t%d) \tDegree \t%d (\t%d) match with a_node \t%d (deg \t%d): \t%g",
 				M.ans_pairs[i].v,
 				correct_match[M.ans_pairs[i].v],
@@ -53,8 +55,8 @@ void analyst::analysis(class matcher &M) {
 		sort(seq.begin(), seq.end());
 
 		int k = 0;
-		for (; k<seq.size() && seq[k] <= M.ans_pairs[i].w + 1e-6; k++)
-		fprintf(ana, " (No. \t%d, top \t%g)", (int)seq.size()-k, seq[seq.size()-1]);
+		for (; k<seq.size() && seq[k] <= M.ans_pairs[i].w + 1e-6; k++);
+		fprintf(ana, " (No. \t%d, score \t%g/%g)", (int)seq.size()-k+1, seq[k-1], seq[seq.size()-1]);
 		fprintf(ana, "\n");
 	}
 	fclose(ana);
