@@ -221,6 +221,9 @@ void matcher::gen_ans_pairs() {
 	 *				for r in neighbor(match[v]) and r is not matched:
 	 *					weight[r] += simi[u][r]
 	 *		match[u] = v, where weight[v] = max(weight[])
+	 *
+	 *	TODO
+	 *		degree info
 	 */
 
 	const int deg_thrsd = 3;
