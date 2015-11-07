@@ -122,71 +122,6 @@ void matcher::load_matrix() {
 	fprintf(stderr, "Matrix read from `matrix.txt`\n");
 }
 
-void matcher::gen_random_walk(class graph *G, int start, int maxlen, int delta, FILE * ou) {
-	for (int nxt, idx, cur = start; maxlen > 0; maxlen--, cur = nxt){
-		if (! G->edges[cur]->size())
-			break;
-		idx = rand() % (G->edges[cur]->size());
-		nxt = (*(G->edges[cur]))[idx];
-		fprintf(ou, "%d ", cur + delta);
-		if (nxt == start)
-			break;
-	}
-	fprintf(ou, "\n");fflush(ou);
-}
-
-void matcher::gen_passage() {
-	FILE * psg = fopen("passage.txt", "w");
-	// TODO
-#define GAMMA 30
-#define MAXLEN 40
-	srand(time(0));
-	for (int i=1; i<=G_a->num_nodes; i++)
-		for (int j=0; j<GAMMA; j++)
-			gen_random_walk(G_a, i, MAXLEN, 0, psg);
-	for (int i=1; i<=G->num_nodes; i++)
-		for (int j=0; j<GAMMA; j++)
-			gen_random_walk(G, i, MAXLEN, G_a->num_nodes, psg);
-	fclose(psg);
-	fprintf(stderr, "passage generated.\n");
-}
-
-void matcher::gen_sim_matrix_word2vec() {
-	// generate passage
-	gen_passage();
-
-	// train node vectors
-	system("./word2vec-read-only/word2vec -train passage.txt -output vectors.txt -cbow 0 -size 300 -window 5 -negative 5 -hs 1 -sample 1e-5 -threads 3 -binary 0 -iter 15");
-
-	// read node vectors
-	FILE *in = fopen("vectors.txt", "r");
-	int tot_nodes = G_a->num_nodes + G->num_nodes;
-	double ** vectors = new double * [tot_nodes+1];
-	for (int i=1; i<=tot_nodes; i++)
-		vectors[i] = new double [300];
-	for (int i=0, j; i<tot_nodes; i++){
-		fscanf(in, "%d", &j);
-		for (int k=0; k<300; k++)
-			fscanf(in, "%lf", vectors[j]+k);
-	}
-	fclose(in);
-
-	// generate matrix
-	for (int i=1; i<=G_a->num_nodes; i++)
-		for (int j=1; j<=G->num_nodes; j++)
-			sim_nodes[i][j] = cos_analogy(vectors[i], vectors[j+G_a->num_nodes], 300);
-}
-
-double cos_analogy(double *a, double *b, int len) {
-	double re=0, sa=0, sb=0;
-	for (int i=0; i<len; i++){
-		re += a[i] * b[i];
-		sa += a[i] * a[i];
-		sb += b[i] * b[i];
-	}
-	return fabs(re) / sqrt(sa * sb);
-}
-
 void matcher::gen_sim_matrix_simranc() {
 	clock_t time_start = clock();
 	int cT;
@@ -247,6 +182,71 @@ void matcher::gen_sim_matrix_simranc() {
 			MAX_ROUNDS, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
 
+void matcher::gen_ans_pairs_oldway() {
+	ans_pairs.clear();
+	vector<match_edge> match_edges;
+	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
+	memset(flag_a, 0, MAX_NODES);
+	memset(flag, 0, MAX_NODES);
+	for (int i=1; i <= G_a->num_nodes; i++)
+		for (int j=1; j <= G->num_nodes; j++)
+			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
+	sort(match_edges.begin(), match_edges.end());
+	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
+		//printf("\t %d -- %d : %g\n", it->u, it->v, it->w);
+		if (!flag_a[it->u] && !flag[it->v]) {
+			flag_a[it->u] = 1;
+			flag[it->v] = 1;
+			ans_pairs.push_back(*it);
+		}
+	}
+	delete []flag_a;
+	delete []flag;
+}
+
+void matcher::gen_ans_pairs() {
+	clock_t time_start = clock();
+	ans_pairs.clear();
+	vector<match_edge> match_edges;
+	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
+	memset(flag_a, 0, MAX_NODES);
+	memset(flag, 0, MAX_NODES);
+
+	/*
+	 * TODO
+	 *	count degrees deg[]
+	 *	match nodes whose degree > deg_thrsd (deg_thrsd=3)
+	 *	deal with nodes left (choose according to neighbor matching):
+	 *		for node u left:
+	 *			for node v in neighbors(u) and v is matched:
+	 *				for r in neighbor(match[v]):
+	 *					weight[r] += simi[u][r]
+	 *		match[u] = v, where weight[v] = max(weight[])
+	 */
+
+
+
+	delete []flag_a;
+	delete []flag;
+	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n",
+			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
+}
+
+void matcher::print(FILE *ou) {
+	for (vector<match_edge> :: iterator it=ans_pairs.begin(); it!=ans_pairs.end(); ++it) {
+#if PRINT_SIMI
+		fprintf(ou, "%d %d %g\n", it->u, it->v, it->w);
+#else
+		fprintf(ou, "%d %d\n", it->u, it->v);
+#endif
+
+	}
+}
+
+
+// =================================================================
+// matcher::heap
+
 matcher::heap::heap(class matcher *o) {
 	len = 0;
 	owner = o;
@@ -302,155 +302,3 @@ void matcher::heap::pop(){
 	heap_down(1);
 }
 
-void matcher::gen_ans_pairs_oldway() {
-	ans_pairs.clear();
-	vector<match_edge> match_edges;
-	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
-	memset(flag_a, 0, MAX_NODES);
-	memset(flag, 0, MAX_NODES);
-	for (int i=1; i <= G_a->num_nodes; i++)
-		for (int j=1; j <= G->num_nodes; j++)
-			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
-	sort(match_edges.begin(), match_edges.end());
-	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
-		//printf("\t %d -- %d : %g\n", it->u, it->v, it->w);
-		if (!flag_a[it->u] && !flag[it->v]) {
-			flag_a[it->u] = 1;
-			flag[it->v] = 1;
-			ans_pairs.push_back(*it);
-		}
-	}
-	delete []flag_a;
-	delete []flag;
-}
-
-void matcher::gen_ans_pairs() {
-	clock_t time_start = clock();
-	ans_pairs.clear();
-	vector<match_edge> match_edges;
-	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
-	memset(flag_a, 0, MAX_NODES);
-	memset(flag, 0, MAX_NODES);
-
-	H = new heap(G_a->num_nodes, G->num_nodes, this);
-
-	vector <int> nbs_a;
-	vector <int> nbs;
-
-	for (int u, v; H->len > 0; ) {
-
-		// get heap.top and check conflicts
-		u = H->nodes[1].u, v = H->nodes[1].v;
-		if (flag_a[u] || flag[v])
-			goto next_round;
-
-		// add as an answer pair
-		ans_pairs.push_back(match_edge(u, v, sim_nodes[u][v]));
-		flag_a[u] = 1;
-		flag[v] = 1;
-
-		// add neighbors to heap H
-		nbs_a.clear(), nbs.clear();
-		for (vector <int>::iterator i=G_a->edges[u]->begin(); i!=G_a->edges[u]->end(); i++)
-			if (!flag_a[*i])
-				nbs_a.push_back(*i);
-		for (vector <int>::iterator i=G_a->rev_edges[u]->begin(); i!=G_a->rev_edges[u]->end(); i++)
-			if (!flag_a[*i])
-				nbs_a.push_back(*i);
-		for (vector <int>::iterator j=G->edges[v]->begin(); j!=G->edges[v]->end(); j++)
-			if (!flag[*j])
-				nbs.push_back(*j);
-		for (vector <int>::iterator j=G->rev_edges[v]->begin(); j!=G->rev_edges[v]->end(); j++)
-			if (!flag[*j])
-				nbs.push_back(*j);
-		for (vector <int> :: iterator i=nbs_a.begin(); i!=nbs_a.end(); i++)
-			for (vector <int> :: iterator j=nbs.begin(); j!=nbs.end(); j++){
-				sim_nodes[*i][*j] *= 1.05;
-				if (sim_nodes[*i][*j] > 1)
-					sim_nodes[*i][*j] = 1;
-				H->heap_down(H->heap_pos[*i][*j]);
-				H->heap_up(H->heap_pos[*i][*j]);
-			}
-next_round:
-		H->pop();
-	}
-
-	delete H;
-	delete []flag_a;
-	delete []flag;
-	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n",
-			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
-}
-
-void matcher::gen_ans_pairs_iter() {
-	clock_t time_start = clock();
-	int cU=0;
-
-	ans_pairs.clear();
-	vector<match_edge> match_edges;
-	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
-	memset(flag_a, 0, MAX_NODES);
-	memset(flag, 0, MAX_NODES);
-
-	memcpy(last_round, sim_nodes, sizeof(sim_nodes));
-	H = new heap(G_a->num_nodes, G->num_nodes, this);
-
-	for (int u, v; H->len > 0; ) {
-		vector <int> nbs_a;
-		vector <int> nbs;
-
-		// get heap.top and check conflicts
-		u = H->nodes[1].u, v = H->nodes[1].v;
-		if (flag_a[u] || flag[v])
-			goto next_round;
-
-		// add as an answer pair
-		ans_pairs.push_back(match_edge(u, v, sim_nodes[u][v]));
-		flag_a[u] = 1;
-		flag[v] = 1;
-		last_round[u][v] = sim_nodes[u][v] = 1;
-
-		// update matrix
-		nbs_a.clear(), nbs.clear();
-		for (vector <int>::iterator i=G_a->rev_edges[u]->begin(); i!=G_a->rev_edges[u]->end(); i++)
-			if (!flag_a[*i])
-				nbs_a.push_back(*i);
-		for (vector <int>::iterator j=G->rev_edges[v]->begin(); j!=G->rev_edges[v]->end(); j++)
-			if (!flag[*j])
-				nbs.push_back(*j);
-		for (vector <int> :: iterator i=nbs_a.begin(); i!=nbs_a.end(); i++)
-			for (vector <int> :: iterator j=nbs.begin(); j!=nbs.end(); j++){
-				cU ++;
-				calc_sim_nodes_wrapper(*i, *j, 0);
-			}
-#if MULTITHREAD
-		thpool_wait(thpool);
-#endif
-
-		// apply changes to matrix
-		for (vector <int> :: iterator i=nbs_a.begin(); i!=nbs_a.end(); i++)
-			for (vector <int> :: iterator j=nbs.begin(); j!=nbs.end(); j++)
-				last_round[*i][*j] = sim_nodes[*i][*j];
-next_round:
-		H->pop();
-	}
-
-	delete []flag_a;
-	delete []flag;
-	delete H;
-	H = 0;
-
-	fprintf(stderr, "answer pairs generated.\n\t%d updates, %.2lf seconds.\n",
-			cU, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
-}
-
-void matcher::print(FILE *ou) {
-	for (vector<match_edge> :: iterator it=ans_pairs.begin(); it!=ans_pairs.end(); ++it) {
-#if PRINT_SIMI
-		fprintf(ou, "%d %d %g\n", it->u, it->v, it->w);
-#else
-		fprintf(ou, "%d %d\n", it->u, it->v);
-#endif
-
-	}
-}

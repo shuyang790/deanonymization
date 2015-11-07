@@ -72,10 +72,6 @@ private:
 	all_node_pairs sim_nodes;
 	all_node_pairs last_round;
 
-	// generate passage for word2vec
-	void gen_passage();
-	void gen_random_walk(class graph *, int, int, int, FILE *);
-
 	// sorted sim_nodes
 	struct node_pair {
 		int u, v;
@@ -127,8 +123,6 @@ public:
 
 	// match and generate answer pairs
 	void gen_sim_matrix_simranc();
-	void gen_sim_matrix_word2vec();
-	void gen_ans_pairs_iter();
 	void gen_ans_pairs();
 	void gen_ans_pairs_oldway();
 
@@ -146,7 +140,5 @@ public:
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * args);
 #endif
-
-double cos_analogy(double *a, double *b, int len);
 
 #endif /* match_hpp */
