@@ -37,7 +37,7 @@
 #include "thpool.hpp"
 
 // size of the thread pool
-#define THREAD_POOL_SIZE 10
+#define THREAD_POOL_SIZE 12
 
 #endif
 
@@ -58,6 +58,8 @@ struct match_edge {
 		return w > b.w;
 	}
 };
+
+bool cmp_deg(int, int);
 
 class matcher {
 private:

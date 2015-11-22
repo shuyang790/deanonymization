@@ -7,6 +7,7 @@
 //
 
 #include "match.hpp"
+#include "match_vars.hpp"
 
 int int_abs(int x){
 	return x < 0 ? -x : x;
@@ -204,13 +205,20 @@ void matcher::gen_ans_pairs_oldway() {
 	delete []flag;
 }
 
+bool cmp_deg(int a, int b) {
+	return GA->out_deg(a) > GA->out_deg(b);
+}
+
 void matcher::gen_ans_pairs() {
 	clock_t time_start = clock();
 	ans_pairs.clear();
 	vector<match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
+	char * fake_flag_a = new char[MAX_NODES], * fake_flag = new char[MAX_NODES];
 	memset(flag_a, 0, MAX_NODES);
 	memset(flag, 0, MAX_NODES);
+	memset(fake_flag_a, 0, MAX_NODES);
+	memset(fake_flag, 0, MAX_NODES);
 
 	/*
 	 * TODO
@@ -235,46 +243,79 @@ void matcher::gen_ans_pairs() {
 			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
 	sort(match_edges.begin(), match_edges.end());
 	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
-		if (G_a->edges[it->u]->size() > deg_thrsd && !flag_a[it->u] && !flag[it->v]) {
-			flag_a[it->u] = 1;
-			flag[it->v] = 1;
-			match[it->u] = it->v;
-			ans_pairs.push_back(*it);
+		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
+			fake_flag_a[it->u] = 1;
+			fake_flag[it->v] = 1;
+			if (G_a->edges[it->u]->size() > deg_thrsd 
+					&& !flag_a[it->u] && !flag[it->v]) {
+				flag_a[it->u] = 1;
+				flag[it->v] = 1;
+				match[it->u] = it->v;
+				ans_pairs.push_back(*it);
+			}
 		}
 	}
 
-	queue <int> Q;
+	fprintf(stderr, "First part: %d pairs.\n", ans_pairs.size());
 
-	for (int i=1; i <= G_a->num_nodes; i++)
-		if (!flag_a[i])
-			Q.push(i);
-	for (int i, t; !Q.empty(); ) {
-		i = Q.front();
-		Q.pop();
+	int TIME = 0;
+
+refine:
+
+	match_edges.clear();
+	for (int i=1, t; i<=G_a->num_nodes; i++) {
 		if (!flag_a[i]) {
 			map <int, double> weight;
 			for (vector <int> :: iterator j = G_a->edges[i]->begin(); j != G_a->edges[i]->end(); j++)
 				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->edges[match[*j]]->begin(); k != G->edges[match[*j]]->end(); k++)
-						weight[*k] += sim_nodes[i][*k];
+					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin(); k != G->rev_edges[match[*j]]->end(); k++)
+						if (!flag[*k])
+							weight[*k] += sim_nodes[i][*k];
 				}
-			if (!weight.size()) {
-				Q.push(i);
-				continue;
-			}
-			flag_a[i] = 1;
-			double score_t = 0;
-			for (map <int, double> :: iterator j = weight.begin(); j != weight.end(); j++)
-				if (j->second > score_t)
-					t = j->first;
-			match[i] = t;
-			ans_pairs.push_back(match_edge(i, match[i]));
+			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin(); j != G_a->rev_edges[i]->end(); j++)
+				if (flag_a[*j]) {
+					for (vector <int> :: iterator k = G->edges[match[*j]]->begin(); k != G->edges[match[*j]]->end(); k++)
+						if (!flag[*k])
+							weight[*k] += max(sim_nodes[i][*k], 1e-10);
+				}
+			for (map <int, double> :: iterator k = weight.begin(); k!=weight.end(); k++)
+				match_edges.push_back(match_edge(i, k->first, k->second));
 		}
 	}
+	sort(match_edges.begin(), match_edges.end());
+	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
+		if (it->w < 2.9e-20 && TIME < 3){
+			TIME ++;
+			goto refine;
+		}
+		if ( !flag_a[it->u] && !flag[it->v]) {
+			flag_a[it->u] = 1;
+			flag[it->v] = 1;
+			match[it->u] = it->v;
+			ans_pairs.push_back(*it);
+			if (it->w < 1e-8)
+				fprintf(stderr, "%d, %d: sim=%g, weight=%g, No. %d\n",
+						it->u, it->v, sim_nodes[it->u][it->v],
+						it->w, ans_pairs.size());
+		}
+	}
+
+	for (int i=1; i<=G_a->num_nodes; i++)
+		if (!flag_a[i]) {
+			for (int j=1; j<=G->num_nodes; j++)
+				if (!flag[j]) {
+					flag_a[i] = flag[j] = 1;
+					match[i] = j;
+					ans_pairs.push_back(match_edge(i, j, 0));
+					break;
+				}
+		}
 
 	delete []match;
 	delete []flag_a;
 	delete []flag;
+	delete []fake_flag_a;
+	delete []fake_flag;
 	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n",
 			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
