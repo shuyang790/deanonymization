@@ -31,8 +31,7 @@ def compare(prog_output, correct_pair, num_nodes, max_correct_num, output):
 	print ("%s finished.\n" % prog_output)
 
 if __name__ == "__main__":
-#	compare("result/LOG50", "data/50%/pair_a_c.txt", 7500, 5000, "result/50")
-#	compare("bak_res.txt", "data/50%/pair_a_c.txt", 7500, 5000, "result/50_old_way")
-	compare("bak_res.txt", "data/100%/pair_a_c.txt", 10000, 10000, "result/100_old_way")
-	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, 10000, "result/100")
-#	compare("result/LOG100_another", "data/100%/pair_a_c.txt", 10000, "result/100_another")
+	compare("result/LOG50", "data/50%/pair_a_c.txt", 7500, 5000, "result/50")
+	compare("bak_res.txt", "data/50%/pair_a_c.txt", 7500, 5000, "result/50_old_way")
+#	compare("bak_res.txt", "data/100%/pair_a_c.txt", 10000, 10000, "result/100_old_way")
+#	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, 10000, "result/100")

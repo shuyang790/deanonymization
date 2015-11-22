@@ -259,6 +259,14 @@ void matcher::gen_ans_pairs() {
 	fprintf(stderr, "First part: %d pairs.\n", ans_pairs.size());
 
 	int TIME = 0;
+	double TINY = 1e20;
+
+	for (int i=1; i<=G_a->num_nodes; i++)
+		for (int j=1; j<=G->num_nodes; j++)
+			if (sim_nodes[i][j] > 0 && TINY > sim_nodes[i][j])
+				TINY = sim_nodes[i][j];
+
+	fprintf(stderr, "TINY = %g\n", TINY);
 
 refine:
 
@@ -270,13 +278,13 @@ refine:
 				if (flag_a[*j]) {
 					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin(); k != G->rev_edges[match[*j]]->end(); k++)
 						if (!flag[*k])
-							weight[*k] += max(sim_nodes[i][*k], 1e-10);
+							weight[*k] += max(sim_nodes[i][*k], TINY);
 				}
 			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin(); j != G_a->rev_edges[i]->end(); j++)
 				if (flag_a[*j]) {
 					for (vector <int> :: iterator k = G->edges[match[*j]]->begin(); k != G->edges[match[*j]]->end(); k++)
 						if (!flag[*k])
-							weight[*k] += max(sim_nodes[i][*k], 1e-10);
+							weight[*k] += max(sim_nodes[i][*k], TINY);
 				}
 			for (map <int, double> :: iterator k = weight.begin(); k!=weight.end(); k++)
 				match_edges.push_back(match_edge(i, k->first, k->second));
@@ -284,7 +292,7 @@ refine:
 	}
 	sort(match_edges.begin(), match_edges.end());
 	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
-		if (it->w < 2.9e-20 && TIME < 3){
+		if (it->w < 2.9 * TINY && TIME < 3){
 			TIME ++;
 			goto refine;
 		}
