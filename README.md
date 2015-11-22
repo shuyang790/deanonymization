@@ -24,7 +24,7 @@ Social network deanonymization (provided with an anonymized graph and a crawled 
 		- 精炼的整个过程中（一直到最后几对匹配）都有较多匹配正确的点
 		- 最后有将近400个点只有一条通路，它们的匹配结果相对没有那么好（也可能是因为理论上无法匹配的点主要出现在这里）
 	- 7500点的图（50% overlap）
-		- 有提升，从34.77%上升到37.69%
+		- 有提升，从50.15%上升到54.47%
 		- 相关解释类似
 
 ## Next Step

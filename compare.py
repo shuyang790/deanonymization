@@ -22,7 +22,7 @@ def compare(prog_output, correct_pair, num_nodes, max_correct_num, output):
 		print "dealing with No. " + str(i) + "\r",
                 sys.stdout.flush()
 		eles = p_line.split()
-		if eval(eles[1]) == dic[eval(eles[0])] and eval(eles[0]) <= max_correct_num:
+		if eval(eles[1]) == dic[eval(eles[0])] and eval(eles[1]) <= max_correct_num:
 			correct += 1
 		f.write("G1: %s GA: %s G2: %d Total: %.2f%%\n" % (eles[1], eles[0], dic[eval(eles[0])], correct * 100.0 / i))
 		i = i + 1
