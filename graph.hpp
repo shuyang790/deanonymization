@@ -24,7 +24,7 @@
 using namespace std;
 
 class graph {
-private:
+public:
 	int num_nodes;
 	int num_edges;
 	vector <int> nodes;
@@ -43,6 +43,8 @@ private:
 
 public:
 	graph(const char * file_name);
+
+	int out_deg(int);
 
 	subgraph * extract_subgraph(int node);
 	vector<int> * extract_neighbors(int node);
