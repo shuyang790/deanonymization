@@ -246,7 +246,7 @@ void matcher::gen_ans_pairs() {
 		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
 			fake_flag_a[it->u] = 1;
 			fake_flag[it->v] = 1;
-			if (G_a->edges[it->u]->size() > deg_thrsd 
+			if (G_a->edges[it->u]->size() > deg_thrsd
 					&& !flag_a[it->u] && !flag[it->v]) {
 				flag_a[it->u] = 1;
 				flag[it->v] = 1;
@@ -270,7 +270,7 @@ refine:
 				if (flag_a[*j]) {
 					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin(); k != G->rev_edges[match[*j]]->end(); k++)
 						if (!flag[*k])
-							weight[*k] += sim_nodes[i][*k];
+							weight[*k] += max(sim_nodes[i][*k], 1e-10);
 				}
 			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin(); j != G_a->rev_edges[i]->end(); j++)
 				if (flag_a[*j]) {
