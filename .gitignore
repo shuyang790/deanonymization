@@ -1,3 +1,5 @@
 matrix*.txt
 analysis.txt
 .DS_Store
+main
+*.o
