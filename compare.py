@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys
 
-def compare(prog_output, correct_pair, num_nodes, output):
+def compare(prog_output, correct_pair, num_nodes, max_correct_num, output):
 	f_p = open(prog_output)
 	p_lines = f_p.readlines() # G_a, G
 	f_p.close()
@@ -22,7 +22,7 @@ def compare(prog_output, correct_pair, num_nodes, output):
 		print "dealing with No. " + str(i) + "\r",
                 sys.stdout.flush()
 		eles = p_line.split()
-		if eval(eles[1]) == dic[eval(eles[0])]:
+		if eval(eles[1]) == dic[eval(eles[0])] and eval(eles[0]) <= max_correct_num:
 			correct += 1
 		f.write("G1: %s GA: %s G2: %d Total: %.2f%%\n" % (eles[1], eles[0], dic[eval(eles[0])], correct * 100.0 / i))
 		i = i + 1
@@ -31,8 +31,8 @@ def compare(prog_output, correct_pair, num_nodes, output):
 	print ("%s finished.\n" % prog_output)
 
 if __name__ == "__main__":
-#	compare("result/LOG50", "data/50%/pair_a_c.txt", 7500, "result/50")
-#	compare("bak_res.txt", "data/50%/pair_a_c.txt", 7500, "result/50_old_way")
-	compare("bak_res.txt", "data/100%/pair_a_c.txt", 10000, "result/100_old_way")
-	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, "result/100")
+	compare("result/LOG50", "data/50%/pair_a_c.txt", 7500, 5000, "result/50")
+	compare("bak_res.txt", "data/50%/pair_a_c.txt", 7500, 5000, "result/50_old_way")
+#	compare("bak_res.txt", "data/100%/pair_a_c.txt", 10000, 10000, "result/100_old_way")
+#	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, 10000, "result/100")
 #	compare("result/LOG100_another", "data/100%/pair_a_c.txt", 10000, "result/100_another")

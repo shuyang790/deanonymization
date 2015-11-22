@@ -32,7 +32,9 @@ graph::graph(const char * file_name){
 	fprintf(stderr, "Graph read: %d, %d\n", num_nodes, num_edges);
 }
 
-
+int graph::out_deg(int i) {
+	return edges[i]->size();
+}
 
 vector<int> * graph::extract_neighbors(int node){
 	if (neighbors[node])

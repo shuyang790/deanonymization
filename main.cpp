@@ -18,20 +18,20 @@ int main(int argc, const char * argv[]) {
 	//graph G_a("anonymized.txt");
 	//graph G("crawled.txt");
 
-	//graph G_a("data/50\%/anonymized.txt");
-	//graph G("data/50\%/crawled.txt");
-	graph G_a("data/100\%/anonymized.txt");
-	graph G("data/100\%/crawled.txt");
+	graph G_a("data/50\%/anonymized.txt");
+	graph G("data/50\%/crawled.txt");
+//	graph G_a("data/100\%/anonymized.txt");
+//	graph G("data/100\%/crawled.txt");
 
 	matcher *M = new matcher(&G_a, &G);
 #if DEBUG
 	M->debug_print();
 #endif
-	M->gen_sim_matrix_simranc();
+	//M->gen_sim_matrix_simranc();
 
-	//M->load_matrix();
+	M->load_matrix();
 #if DEBUG
-	M->record_matrix();
+	//M->record_matrix();
 	M->gen_ans_pairs_oldway();
 	FILE * backup_res = fopen("bak_res.txt", "w");
 	M->print(backup_res);
