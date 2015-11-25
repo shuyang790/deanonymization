@@ -53,52 +53,64 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 	vector <match_edge> match_edges;
 	set <int> flag_a;
 	set <int> flag;
-	for (int i=0; i < level; i++) {
+
+	for (int t=0; t<2; t++) {
+		flag_a.clear();
+		flag.clear();
+		match_edges.clear();
+		for (int i=0; i < level; i++) {
 #if AVERAGE_EACH_CALC
-		sum += min(subg_a->nodes_per_level[i].size(),
-				subg->nodes_per_level[i].size());
+			sum += min(subg_a[t].nodes_per_level[i].size(),
+					subg[t].nodes_per_level[i].size());
 #endif
-		for (vector<int> :: iterator j = subg_a->nodes_per_level[i].begin(); j!=subg_a->nodes_per_level[i].end(); j++)
-			for (vector<int> :: iterator k = subg->nodes_per_level[i].begin(); k!=subg->nodes_per_level[i].end(); k++)
-				match_edges.push_back(match_edge(*j, *k, last_round[*j][*k]));
-	}
-	sort(match_edges.begin(), match_edges.end());
-	for (vector<match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
-		if (flag_a.find(it->u) == flag_a.end() && flag.find(it->v) == flag.end()) {
-			flag_a.insert(it->u);
-			flag.insert(it->v);
-			w += it->w;
+			for (vector<int> :: iterator j = subg_a[t].nodes_per_level[i].begin();
+					j!=subg_a[t].nodes_per_level[i].end(); j++)
+				for (vector<int> :: iterator k = subg[t].nodes_per_level[i].begin();
+						k!=subg[t].nodes_per_level[i].end(); k++)
+					match_edges.push_back(match_edge(*j, *k, last_round[*j][*k]));
 		}
-	}
+		sort(match_edges.begin(), match_edges.end());
+		for (vector<match_edge> :: iterator it=match_edges.begin();
+				it!=match_edges.end(); it++) {
+			if (flag_a.find(it->u) == flag_a.end()
+					&& flag.find(it->v) == flag.end()) {
+				flag_a.insert(it->u);
+				flag.insert(it->v);
+				w += it->w;
+			}
+		}
 #if AVERAGE_EACH_CALC
-	w /= sum;
+		w /= sum;
 #endif
+	}
 //	if (u%5000==0 && v%5000 == 0)
 //		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
 	return sim_nodes[u][v] = w ;
 }
 
 #if MULTITHREAD
-void * calc_sim_nodes_pthread(void * args) {
-	int * t = ((int**)args)[0];
-	((class matcher *)(((int**)args)[1]))->calc_sim_nodes(t[0], t[1], t[2]);
+void * calc_sim_nodes_pthread(void * arg) {
+	int idx = *(int*)arg;
+	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE)
+		for (int j=1; j<=MTCR->num_nodes_G(); j++)
+			MTCR->calc_sim_nodes(i, j, 1);
 	return NULL;
 }
 #endif
 
-void matcher::calc_sim_nodes_wrapper(int i, int j, bool flag){
-#if MULTITHREAD
-	int ** t = new int* [2];
-	t[0] = new int[3];
-	t[0][0] = i, t[0][1] = j, t[0][2] = (flag ? 2 : 1);
-	t[1] = (int*)this;
-	thpool_add_work(thpool, (calc_sim_nodes_pthread), (void *)t);
-#else
+int matcher::num_nodes_G_a() const {
+	return G_a->num_nodes;
+}
+
+int matcher::num_nodes_G() const {
+	return G->num_nodes;
+}
+
+void matcher::calc_sim_nodes_singleth(int i, int j, bool flag){
 	if (flag)
 		calc_sim_nodes(i, j, 2);
 	else
 		calc_sim_nodes(i, j, 1);
-#endif
 }
 
 void matcher::record_matrix() {
@@ -128,7 +140,6 @@ void matcher::gen_sim_matrix_simranc() {
 	int cT;
 
 #if MULTITHREAD
-	thpool = thpool_init(THREAD_POOL_SIZE);
 	for (int i=1; i<=G_a->num_nodes; i++)
 		G_a->extract_subgraph(i);
 	for (int i=1; i<=G->num_nodes; i++)
@@ -142,26 +153,18 @@ void matcher::gen_sim_matrix_simranc() {
 		// update node similarities for every pair of nodes
 		memcpy(last_round, sim_nodes, sizeof(sim_nodes));
 
-
-		for (int i=1; i<=G_a->num_nodes; i++)
-			for (int j=1; j<=G->num_nodes; j++){
-				calc_sim_nodes_wrapper(i, j);
-			}
-		int tmpCNT = 0;
-
-		/*
-		for (int i=1; i<=G_a->num_nodes; i++)
-			for (int j=1; j<=G->num_nodes; j++){
-				sim_pairs[tmpCNT++] = node_pair(i, j, &sim_nodes);
-			}
-		sort(sim_pairs, sim_pairs + tmpCNT);
-		for (int i=0; i < tmpCNT; i++)
-			calc_sim_nodes_wrapper(sim_pairs[i].u, sim_pairs[i].v,
-					i > 2000);
-					*/
-
 #if MULTITHREAD
-		thpool_wait(thpool);
+		MTCR = this;
+		for (int i=0; i<THREAD_POOL_SIZE; i++){
+			args[i] = i;
+			pthread_create(threads+i, NULL, calc_sim_nodes_pthread, args+i);
+		}
+		for (int i=0; i<THREAD_POOL_SIZE; i++)
+			pthread_join(threads[i], NULL);
+#else
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++)
+				calc_sim_nodes_singleth(i, j);
 #endif
 
 		// normalization
@@ -175,8 +178,7 @@ void matcher::gen_sim_matrix_simranc() {
 			for (int j=1; j<=G->num_nodes; j++){
 				sim_nodes[i][j] /= max_ele_nodes;
 			}
-		fprintf(stderr, "Round %d processed (%d pairs updated)\n",
-				cT, (tmpCNT >> (cT-1)));
+		fprintf(stderr, "Round %d processed\n", cT);
 	}
 
 	fprintf(stderr, "matcher info\n\t%d rounds, %.2lf seconds.\n",
@@ -193,7 +195,8 @@ void matcher::gen_ans_pairs_oldway() {
 		for (int j=1; j <= G->num_nodes; j++)
 			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
 	sort(match_edges.begin(), match_edges.end());
-	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
+	for (vector <match_edge> :: iterator it=match_edges.begin();
+			it!=match_edges.end(); it++) {
 		//printf("\t %d -- %d : %g\n", it->u, it->v, it->w);
 		if (!flag_a[it->u] && !flag[it->v]) {
 			flag_a[it->u] = 1;
@@ -221,7 +224,6 @@ void matcher::gen_ans_pairs() {
 	memset(fake_flag, 0, MAX_NODES);
 
 	/*
-	 * TODO
 	 *	match nodes whose degree > deg_thrsd (deg_thrsd=3)
 	 *	deal with nodes left (choose according to neighbor matching):
 	 *		for node u left:
@@ -230,8 +232,6 @@ void matcher::gen_ans_pairs() {
 	 *					weight[r] += simi[u][r]
 	 *		match[u] = v, where weight[v] = max(weight[])
 	 *
-	 *	TODO
-	 *		degree info
 	 */
 
 	const int deg_thrsd = 3;
@@ -242,7 +242,8 @@ void matcher::gen_ans_pairs() {
 		for (int j=1; j <= G->num_nodes; j++)
 			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
 	sort(match_edges.begin(), match_edges.end());
-	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
+	for (vector <match_edge> :: iterator it=match_edges.begin();
+			it!=match_edges.end(); it++) {
 		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
 			fake_flag_a[it->u] = 1;
 			fake_flag[it->v] = 1;
@@ -256,7 +257,7 @@ void matcher::gen_ans_pairs() {
 		}
 	}
 
-	fprintf(stderr, "First part: %d pairs.\n", ans_pairs.size());
+	fprintf(stderr, "First part: %lu pairs.\n", ans_pairs.size());
 
 	int TIME = 0;
 	double TINY = 1e20;
@@ -271,27 +272,33 @@ void matcher::gen_ans_pairs() {
 refine:
 
 	match_edges.clear();
-	for (int i=1, t; i<=G_a->num_nodes; i++) {
+	for (int i=1; i<=G_a->num_nodes; i++) {
 		if (!flag_a[i]) {
 			map <int, double> weight;
-			for (vector <int> :: iterator j = G_a->edges[i]->begin(); j != G_a->edges[i]->end(); j++)
+			for (vector <int> :: iterator j = G_a->edges[i]->begin();
+					j != G_a->edges[i]->end(); j++)
 				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin(); k != G->rev_edges[match[*j]]->end(); k++)
+					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin();
+							k != G->rev_edges[match[*j]]->end(); k++)
 						if (!flag[*k])
 							weight[*k] += max(sim_nodes[i][*k], TINY);
 				}
-			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin(); j != G_a->rev_edges[i]->end(); j++)
+			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin();
+					j != G_a->rev_edges[i]->end(); j++)
 				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->edges[match[*j]]->begin(); k != G->edges[match[*j]]->end(); k++)
+					for (vector <int> :: iterator k = G->edges[match[*j]]->begin();
+							k != G->edges[match[*j]]->end(); k++)
 						if (!flag[*k])
 							weight[*k] += max(sim_nodes[i][*k], TINY);
 				}
-			for (map <int, double> :: iterator k = weight.begin(); k!=weight.end(); k++)
+			for (map <int, double> :: iterator k = weight.begin();
+					k!=weight.end(); k++)
 				match_edges.push_back(match_edge(i, k->first, k->second));
 		}
 	}
 	sort(match_edges.begin(), match_edges.end());
-	for (vector <match_edge> :: iterator it=match_edges.begin(); it!=match_edges.end(); it++) {
+	for (vector <match_edge> :: iterator it=match_edges.begin();
+			it!=match_edges.end(); it++) {
 		if (it->w < 2.9 * TINY && TIME < 3){
 			TIME ++;
 			goto refine;
@@ -302,7 +309,7 @@ refine:
 			match[it->u] = it->v;
 			ans_pairs.push_back(*it);
 			if (it->w < 1e-8)
-				fprintf(stderr, "%d, %d: sim=%g, weight=%g, No. %d\n",
+				fprintf(stderr, "%d, %d: sim=%g, weight=%g, No. %lu\n",
 						it->u, it->v, sim_nodes[it->u][it->v],
 						it->w, ans_pairs.size());
 		}
@@ -329,7 +336,8 @@ refine:
 }
 
 void matcher::print(FILE *ou) {
-	for (vector<match_edge> :: iterator it=ans_pairs.begin(); it!=ans_pairs.end(); ++it) {
+	for (vector<match_edge> :: iterator it=ans_pairs.begin();
+			it!=ans_pairs.end(); ++it) {
 #if PRINT_SIMI
 		fprintf(ou, "%d %d %g\n", it->u, it->v, it->w);
 #else
