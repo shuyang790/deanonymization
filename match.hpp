@@ -90,32 +90,6 @@ private:
 	// answer sequence
 	vector<match_edge> ans_pairs;
 
-	// heap used when generating answer pairs
-	struct heap {
-		struct heap_node {
-			int u, v;
-			heap_node(int _=0, int __=0): u(_), v(__) {}
-		};
-
-#define heap_fa(x) ((x)>>1)
-#define heap_lc(x) ((x)<<1)
-#define heap_rc(x) (((x)<<1)+1)
-#define heap_v(x) (owner->sim_nodes[nodes[x].u][nodes[x].v])
-#define heap_p(x) (heap_pos[nodes[x].u][nodes[x].v])
-		class matcher *owner;
-		int len;
-		struct heap_node nodes[MAX_NODES*MAX_NODES*2];
-		all_node_pairs heap_pos;
-
-		heap(class matcher *o);
-		heap(int n, int m, class matcher *o);
-		void heap_down(int x);
-		void heap_up(int x);
-		void pop();
-		void push(int, int);
-
-	} * H;
-
 public:
 
 	int num_nodes_G_a() const;
