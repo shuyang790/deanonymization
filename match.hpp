@@ -34,7 +34,7 @@
 
 #if MULTITHREAD
 
-#include "thpool.hpp"
+#include <pthread.h>
 
 // size of the thread pool
 #define THREAD_POOL_SIZE 12
@@ -46,7 +46,9 @@ using namespace std;
 int int_abs(int);
 
 #if MULTITHREAD
-static threadpool thpool;
+static pthread_t threads[THREAD_POOL_SIZE];
+static int args[THREAD_POOL_SIZE];
+static struct matcher * MTCR;
 #endif
 
 // match_edge structure
@@ -116,12 +118,15 @@ private:
 
 public:
 
+	int num_nodes_G_a() const;
+	int num_nodes_G() const;
+
 	// initialize
 	matcher(class graph *g_a, class graph *g);
 
 	// calculate sim_nodes
 	double calc_sim_nodes(int u, int v, int level); // u from G_a, v from G
-	void calc_sim_nodes_wrapper(int u, int v, bool flag=0);
+	void calc_sim_nodes_singleth(int u, int v, bool flag=0);
 
 	// match and generate answer pairs
 	void gen_sim_matrix_simranc();

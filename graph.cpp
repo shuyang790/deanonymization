@@ -40,57 +40,79 @@ vector<int> * graph::extract_neighbors(int node){
 	if (neighbors[node])
 		return neighbors[node];
 	vector<int> * re = new vector<int>;
-	for (vector<int> :: iterator it=edges[node]->begin(); it!=edges[node]->end(); it++)
+	for (vector<int> :: iterator it=edges[node]->begin();
+			it!=edges[node]->end(); it++)
 		re->push_back(*it);
 	/* TODO: decide whether to use two directions or one? */
-	/*
-	for (vector<int> :: iterator it=rev_edges[node]->begin(); it!=rev_edges[node]->end(); it++)
+
+	for (vector<int> :: iterator it=rev_edges[node]->begin();
+			it!=rev_edges[node]->end(); it++)
 		re->push_back(*it);
 	sort(re->begin(), re->end());
-	unique(re->begin(), re->end());
-	*/
+//	unique(re->begin(), re->end());
 	return neighbors[node] = re;
 }
 
 graph::subgraph * graph::extract_subgraph(int node){
 	if (subgraphs[node])
 		return subgraphs[node];
-	subgraph * re = new subgraph;
-	re->center = node;
-	re->num_nodes = 1;
+	subgraph * re = new subgraph[2];
+	re[0].center = re[1].center = node;
+	re[0].num_nodes = re[1].num_nodes = 1;
 
 	queue<int> Q;
 	char * flag = new char[MAX_NODES];
+
 	memset(flag, 0, MAX_NODES);
 	flag[node]=1;
 	Q.push(node);
 	for (int i=0, last_cnt = 1; i<L; i++) {
 		int cnt = 0;
-		re->nodes_per_level[i].clear();
+		re[0].nodes_per_level[i].clear();
 		while (last_cnt --) {
 			int cur = Q.front();
 			Q.pop();
-			for (vector<int> :: iterator it=edges[cur]->begin(); it!=edges[cur]->end(); it++){
+			for (vector<int> :: iterator it=edges[cur]->begin();
+					it!=edges[cur]->end(); it++){
 				if (!flag[*it]) {
 					flag[*it] = 1;
 					Q.push(*it);
-					re->nodes_per_level[i].push_back(*it);
-					cnt++;
-				}
-			}
-			for (vector<int> :: iterator it=rev_edges[cur]->begin(); it!=rev_edges[cur]->end(); it++){
-				if (!flag[*it]) {
-					flag[*it] = 1;
-					Q.push(*it);
-					re->nodes_per_level[i].push_back(*it);
+					re[0].nodes_per_level[i].push_back(*it);
 					cnt++;
 				}
 			}
 		}
-		re->num_nodes_seq.push_back(cnt);
-		re->num_nodes += cnt;
+		re[0].num_nodes_seq.push_back(cnt);
+		re[0].num_nodes += cnt;
 		last_cnt = cnt;
 	}
+
+	while (!Q.empty())
+		Q.pop();
+	memset(flag, 0, MAX_NODES);
+	flag[node]=1;
+	Q.push(node);
+	for (int i=0, last_cnt = 1; i<L; i++) {
+		int cnt = 0;
+		re[1].nodes_per_level[i].clear();
+		while (last_cnt --) {
+			int cur = Q.front();
+			Q.pop();
+			for (vector<int> :: iterator it=rev_edges[cur]->begin();
+					it!=rev_edges[cur]->end(); it++){
+				if (!flag[*it]) {
+					flag[*it] = 1;
+					Q.push(*it);
+					re[1].nodes_per_level[i].push_back(*it);
+					cnt++;
+				}
+			}
+		}
+		re[1].num_nodes_seq.push_back(cnt);
+		re[1].num_nodes += cnt;
+		last_cnt = cnt;
+	}
+
 	delete []flag;
 	return subgraphs[node] = re;
 }

@@ -1,7 +1,7 @@
 CC = g++
-CFLAG = -O3 -g -pthread
+CFLAG = -O3 -pthread
 EXE = main
-OBJ = main.o match.o graph.o thpool.o data_analysis.o
+OBJ = main.o match.o graph.o data_analysis.o
 
 $(EXE): $(OBJ)
 	$(CC) -o $(EXE) $(OBJ) $(CFLAG)
@@ -12,11 +12,8 @@ main.o: main.cpp match.hpp
 data_analysis.o: data_analysis.cpp data_analysis.hpp
 	$(CC) -c data_analysis.cpp $(CFLAG)
 
-match.o: match.cpp match.hpp graph.hpp thpool.hpp
+match.o: match.cpp match.hpp graph.hpp 
 	$(CC) -c match.cpp $(CFLAG)
-
-thpool.o: thpool.cpp thpool.hpp
-	$(CC) -c thpool.cpp $(CFLAG)
 
 graph.o: graph.cpp graph.hpp
 	$(CC) -c graph.cpp $(CFLAG)
