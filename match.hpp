@@ -28,7 +28,7 @@
 // whether use multithread
 #define MULTITHREAD 1
 
-#define USE_ONLY_NEIGHBORS  /* TODO */
+#define USE_ONLY_NEIGHBORS
 
 #define AVERAGE_EACH_CALC 0
 
@@ -48,7 +48,7 @@ int int_abs(int);
 #if MULTITHREAD
 static pthread_t threads[THREAD_POOL_SIZE];
 static int args[THREAD_POOL_SIZE];
-static struct matcher * MTCR;
+static class matcher * MTCR;
 #endif
 
 // match_edge structure
