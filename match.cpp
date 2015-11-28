@@ -15,9 +15,8 @@ int int_abs(int x){
 
 matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 	for (int i=1; i<=g_a->num_nodes; i++)
-		for (int j=1; j<=g->num_nodes; j++){
+		for (int j=1; j<=g->num_nodes; j++)
 			sim_nodes[i][j] = 1;
-		}
 }
 
 void matcher::debug_print() {
@@ -46,7 +45,7 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 	graph::subgraph * subg_a = G_a->extract_subgraph(u);
 	graph::subgraph * subg = G->extract_subgraph(v);
 
-	double w = 0; // sum(sum_per_level(sim_nodes))
+	double w = 0;
 #if AVERAGE_EACH_CALC
 	int sum = 0;
 #endif
@@ -83,8 +82,6 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 		w /= sum;
 #endif
 	}
-//	if (u%5000==0 && v%5000 == 0)
-//		fprintf(stderr, "\t#sim_nodes(%d, %d) = %g#", u, v, w);
 	return sim_nodes[u][v] = w ;
 }
 
@@ -175,9 +172,8 @@ void matcher::gen_sim_matrix_simranc() {
 				max_ele_nodes = max(max_ele_nodes, tmp);
 			}
 		for (int i=1; i<=G_a->num_nodes; i++)
-			for (int j=1; j<=G->num_nodes; j++){
+			for (int j=1; j<=G->num_nodes; j++)
 				sim_nodes[i][j] /= max_ele_nodes;
-			}
 		fprintf(stderr, "Round %d processed\n", cT);
 	}
 
@@ -191,19 +187,21 @@ void matcher::gen_ans_pairs_oldway() {
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
 	memset(flag_a, 0, MAX_NODES);
 	memset(flag, 0, MAX_NODES);
+
 	for (int i=1; i <= G_a->num_nodes; i++)
 		for (int j=1; j <= G->num_nodes; j++)
 			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
 	sort(match_edges.begin(), match_edges.end());
+
 	for (vector <match_edge> :: iterator it=match_edges.begin();
 			it!=match_edges.end(); it++) {
-		//printf("\t %d -- %d : %g\n", it->u, it->v, it->w);
 		if (!flag_a[it->u] && !flag[it->v]) {
 			flag_a[it->u] = 1;
 			flag[it->v] = 1;
 			ans_pairs.push_back(*it);
 		}
 	}
+
 	delete []flag_a;
 	delete []flag;
 }
@@ -242,8 +240,9 @@ void matcher::gen_ans_pairs() {
 		for (int j=1; j <= G->num_nodes; j++)
 			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
 	sort(match_edges.begin(), match_edges.end());
+
 	for (vector <match_edge> :: iterator it=match_edges.begin();
-			it!=match_edges.end(); it++) {
+			it!=match_edges.end(); it++)
 		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
 			fake_flag_a[it->u] = 1;
 			fake_flag[it->v] = 1;
@@ -255,7 +254,6 @@ void matcher::gen_ans_pairs() {
 				ans_pairs.push_back(*it);
 			}
 		}
-	}
 
 	fprintf(stderr, "First part: %lu pairs.\n", ans_pairs.size());
 

@@ -36,6 +36,7 @@ int graph::out_deg(int i) {
 	return edges[i]->size();
 }
 
+/*
 vector<int> * graph::extract_neighbors(int node){
 	if (neighbors[node])
 		return neighbors[node];
@@ -43,7 +44,6 @@ vector<int> * graph::extract_neighbors(int node){
 	for (vector<int> :: iterator it=edges[node]->begin();
 			it!=edges[node]->end(); it++)
 		re->push_back(*it);
-	/* TODO: decide whether to use two directions or one? */
 
 	for (vector<int> :: iterator it=rev_edges[node]->begin();
 			it!=rev_edges[node]->end(); it++)
@@ -52,6 +52,7 @@ vector<int> * graph::extract_neighbors(int node){
 //	unique(re->begin(), re->end());
 	return neighbors[node] = re;
 }
+*/
 
 graph::subgraph * graph::extract_subgraph(int node){
 	if (subgraphs[node])
