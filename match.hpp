@@ -18,6 +18,12 @@
 #include <map>
 #include <time.h>
 #include <algorithm>
+#include <queue>
+
+// ===== parameters =====
+#define PERC_THRSD 0.05
+#define NUM_PER_ITER 10
+// ======================
 
 // whether to print the similarity values
 #define PRINT_SIMI 0
@@ -60,8 +66,6 @@ struct match_edge {
 		return w > b.w;
 	}
 };
-
-bool cmp_deg(int, int);
 
 class matcher {
 private:
