@@ -236,11 +236,13 @@ void matcher::gen_ans_pairs() {
 				match[it->u] = it->v;
 				ans_pairs.push_back(*it);
 			}
+			else if (ans_pairs.size() > G_a->num_nodes * PERC_THRSD)
+				break;
 		}
 
 	fprintf(stderr, "First part: %lu pairs.\n", ans_pairs.size());
 
-	int TIME = 0;
+	int iterno = 0;
 	double TINY = 1e20;
 
 	for (int i=1; i<=G_a->num_nodes; i++)
@@ -250,8 +252,8 @@ void matcher::gen_ans_pairs() {
 
 	fprintf(stderr, "TINY = %g\n", TINY);
 
-refine:
-//	fprintf(stderr, "refine @ %lu\n", ans_pairs.size());
+iter:
+//	fprintf(stderr, "iter %d @ %lu\n", iterno, ans_pairs.size());
 
 	match_edges.clear();
 	for (int i=1; i<=G_a->num_nodes; i++) {
@@ -282,18 +284,14 @@ refine:
 	for (vector <match_edge> :: iterator it=match_edges.begin();
 			it!=match_edges.end(); it++) {
 		if (it - match_edges.begin() >= NUM_PER_ITER){
-			TIME ++;
-			goto refine;
+			iterno++;
+			goto iter;
 		}
 		if ( !flag_a[it->u] && !flag[it->v]) {
 			flag_a[it->u] = 1;
 			flag[it->v] = 1;
 			match[it->u] = it->v;
 			ans_pairs.push_back(*it);
-			if (it->w < 1e-8)
-				fprintf(stderr, "%d, %d: sim=%g, weight=%g, No. %lu\n",
-						it->u, it->v, sim_nodes[it->u][it->v],
-						it->w, ans_pairs.size());
 		}
 	}
 
