@@ -206,10 +206,6 @@ void matcher::gen_ans_pairs_oldway() {
 	delete []flag;
 }
 
-bool cmp_deg(int a, int b) {
-	return GA->out_deg(a) > GA->out_deg(b);
-}
-
 void matcher::gen_ans_pairs() {
 	clock_t time_start = clock();
 	ans_pairs.clear();
@@ -220,19 +216,6 @@ void matcher::gen_ans_pairs() {
 	memset(flag, 0, MAX_NODES);
 	memset(fake_flag_a, 0, MAX_NODES);
 	memset(fake_flag, 0, MAX_NODES);
-
-	/*
-	 *	match nodes whose degree > deg_thrsd (deg_thrsd=3)
-	 *	deal with nodes left (choose according to neighbor matching):
-	 *		for node u left:
-	 *			for node v in neighbors(u) and v is matched:
-	 *				for r in neighbor(match[v]) and r is not matched:
-	 *					weight[r] += simi[u][r]
-	 *		match[u] = v, where weight[v] = max(weight[])
-	 *
-	 */
-
-	const int deg_thrsd = 3;
 
 	int * match = new int[MAX_NODES];
 
@@ -246,7 +229,7 @@ void matcher::gen_ans_pairs() {
 		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
 			fake_flag_a[it->u] = 1;
 			fake_flag[it->v] = 1;
-			if (G_a->edges[it->u]->size() > deg_thrsd
+			if (ans_pairs.size() < G_a->num_nodes * PERC_THRSD
 					&& !flag_a[it->u] && !flag[it->v]) {
 				flag_a[it->u] = 1;
 				flag[it->v] = 1;
@@ -268,6 +251,7 @@ void matcher::gen_ans_pairs() {
 	fprintf(stderr, "TINY = %g\n", TINY);
 
 refine:
+//	fprintf(stderr, "refine @ %lu\n", ans_pairs.size());
 
 	match_edges.clear();
 	for (int i=1; i<=G_a->num_nodes; i++) {
@@ -297,7 +281,7 @@ refine:
 	sort(match_edges.begin(), match_edges.end());
 	for (vector <match_edge> :: iterator it=match_edges.begin();
 			it!=match_edges.end(); it++) {
-		if (it->w < 2.9 * TINY && TIME < 3){
+		if (it - match_edges.begin() >= NUM_PER_ITER){
 			TIME ++;
 			goto refine;
 		}
@@ -312,6 +296,18 @@ refine:
 						it->w, ans_pairs.size());
 		}
 	}
+
+	fprintf(stderr, "%lu pairs matched.\n", ans_pairs.size());
+
+	for (vector<match_edge> :: iterator it=match_edges.begin();
+			it!=match_edges.end(); it++)
+			if (!flag_a[it->u] && !flag[it->v]){
+				flag_a[it->u] = flag[it->v] = 1;
+				match[it->u] = it->v;
+				ans_pairs.push_back(*it);
+			}
+
+	fprintf(stderr, "%lu pairs processed.\n", ans_pairs.size());
 
 	for (int i=1; i<=G_a->num_nodes; i++)
 		if (!flag_a[i]) {
@@ -344,5 +340,3 @@ void matcher::print(FILE *ou) {
 
 	}
 }
-
-
