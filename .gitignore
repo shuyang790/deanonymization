@@ -5,3 +5,4 @@ data/.DS_Store
 main
 tags
 *.o
+*.pyc

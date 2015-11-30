@@ -13,21 +13,40 @@
 
 #define DEBUG 1
 
+#define STR_LEN 128
+
 int main(int argc, const char * argv[]) {
 
-	//graph G_a("anonymized.txt");
-	//graph G("crawled.txt");
+	char str[STR_LEN], tmp[STR_LEN];
+	graph *G_a, *G;
 
-	graph G_a("data/50\%sparsify/anonymized.txt");
-	graph G("data/50\%sparsify/crawled.txt");
+	if (argc == 3){
+		strcpy(str, "data/");
+		strcat(str, argv[1]);
+		strcat(str, "\%");
+		strcat(str, argv[2]);
+		strcpy(tmp, str);
+		strcat(tmp, "/anonymized.txt");
+		G_a = new graph(tmp);
+		strcpy(tmp, str);
+		strcat(tmp, "/crawled.txt");
+		G = new graph(tmp);
+	}
+	else {
+		//graph G_a("anonymized.txt");
+		//graph G("crawled.txt");
 
-//	graph G_a("data/50\%/anonymized.txt");
-//	graph G("data/50\%/crawled.txt");
+		G_a = new graph("data/50\%sparsify/anonymized.txt");
+		G = new graph("data/50\%sparsify/crawled.txt");
 
-//	graph G_a("data/100\%/anonymized.txt");
-//	graph G("data/100\%/crawled.txt");
+	//	graph G_a("data/50\%/anonymized.txt");
+	//	graph G("data/50\%/crawled.txt");
 
-	matcher *M = new matcher(&G_a, &G);
+	//	graph G_a("data/100\%/anonymized.txt");
+	//	graph G("data/100\%/crawled.txt");
+
+	}
+	matcher *M = new matcher(G_a, G);
 #if DEBUG
 	M->debug_print();
 #endif
