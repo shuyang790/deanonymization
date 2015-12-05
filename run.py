@@ -3,10 +3,10 @@ import os
 from compare import compare
 
 # overlap rate
-overlap = 50
+overlap = 100
 
 # anonymization flag
-aflag = "sparsify"
+aflag = "naive"
 
 # number
 number = 0

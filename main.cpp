@@ -38,13 +38,6 @@ int main(int argc, const char * argv[]) {
 
 		G_a = new graph("data/50\%sparsify/anonymized.txt");
 		G = new graph("data/50\%sparsify/crawled.txt");
-
-	//	graph G_a("data/50\%/anonymized.txt");
-	//	graph G("data/50\%/crawled.txt");
-
-	//	graph G_a("data/100\%/anonymized.txt");
-	//	graph G("data/100\%/crawled.txt");
-
 	}
 	matcher *M = new matcher(G_a, G);
 #if DEBUG

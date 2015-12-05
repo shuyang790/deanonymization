@@ -74,14 +74,28 @@ Social network de-anonymization (provided with an anonymized graph and a crawled
 		- `PERC_THRSD=0.05`, `NUM_PER_ITER=10`: 55.03%
 			- 提升了9.20个百分点
 
-### 相关理解与阐述 <span id="unde"></span>
-####  Baseline 算法 <span id="base"></span>
+### 实验结果
+
+| Graph No. | Vertices Quantity | Overlap Rate | Upper Bound Precision | Program Version | Parameters | Precision | Improvement | Remarks |
+|-----------|-------------------|--------------|-----------------------|-----------------|------------|-----------|-------------|--------|
+| 1         | 7500              | 50%          | 66.7%                 | Baseline        |  /         |   45.83%  |    /   | / |
+| 1         | 7500              | 50%          | 66.7%                 | DNMC            |PERC_THRSD = 0.07, DECAY(i)=1     |   52.45%  |  6.62 | Correct matches go first in the result       |
+| 1         | 7500              | 50%          | 66.7%                 | BTCH            |PERC_THRSD = 0.05, NUM_PER_ITER = 10 |   55.03%  |   9.20 |      |
+| 2         | 7500              | 50%          | 66.7%                 | Baseline        |  /         |   56.84%  |    /   | / |
+| 2         | 7500              | 50%          | 66.7%                 | DNMC            |PERC_THRSD = 0.10, DECAY(i)=(1-1e-4)^i     |   58.73%  |  1.89 | Correct matches go first in the result       |
+| 2         | 7500              | 50%          | 66.7%                 | BTCH            |PERC_THRSD = 0.05, NUM_PER_ITER = 10 |   59.75%  |   2.91 |      |
+| 3         |10000              | 100%          | 100%                 | Baseline        |  /         |   90.80%  |    /   | / |
+| 3         |10000              | 100%          | 100%                 | DNMC            |PERC_THRSD = 0.8, DECAY(i)=(1-3e-5)^i     |   90.85%  |  0.05 | Correct matches go first in the result       |
+| 3         |10000              | 100%          | 100%                 | BTCH            |PERC_THRSD = 0.05, NUM_PER_ITER = 5 |   90.70%  |   -0.10 |      |
+
+## 相关理解与阐述 <span id="unde"></span>
+###  Baseline 算法 <span id="base"></span>
 该算法在计算的时候未将点对的相似权值归一化，事实上，度数大的点对权值大。
 事实上，度数大的点对，匹配的置信度相对也高。
 
 因此，Baseline算法实际上是将**邻居相似度**和**度数置信度**统一在一个实数中进行迭代。
 
-#### 改进算法 <span id="impr"></span>
+### 改进算法 <span id="impr"></span>
 将Baseline得到的相似度矩阵`sim_nodes`作为基础，用Baseline匹配的前5％的点作为已匹配的种子，重新构造`weights`矩阵。
 `weights`矩阵利用了匹配的**中间结果**，利用已经匹配的邻居数量作为权值，求匹配对的加权`sum(sim_nodes)`。
 
@@ -89,7 +103,7 @@ Social network de-anonymization (provided with an anonymized graph and a crawled
 - DNMC: 动态维护`weights`，用堆维护，每次匹配以后都更新（单线程运行）
 - BTCH: 每次处理`NUM_PER_ITER`对候选匹配对之后，重建`weights`矩阵（重建过程可并行）
 
-#### 贡献与创新 <span id="cont"></span>
+### 贡献与创新 <span id="cont"></span>
 综合利用了**多种信息**：
 - 邻居相似度；
 - 度数大小作为置信度；

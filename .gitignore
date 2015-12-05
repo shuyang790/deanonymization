@@ -6,3 +6,4 @@ main
 tags
 *.o
 *.pyc
+debug.info
