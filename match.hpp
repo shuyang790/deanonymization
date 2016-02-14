@@ -35,6 +35,9 @@
 #define PRINT_SIMI 0
 
 #define USE_ONLY_NEIGHBORS
+
+//#define ROLE_SIMI
+
 #define AVERAGE_EACH_CALC 0
 
 // ============================
@@ -63,7 +66,7 @@ Error: Cannot simutaneously use two versions!
 #include <pthread.h>
 
 // size of the thread pool
-#define THREAD_POOL_SIZE 12
+#define THREAD_POOL_SIZE 3
 
 #endif
 
