@@ -82,7 +82,14 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 		w /= sum;
 #endif
 	}
-	return sim_nodes[u][v] = w ;
+
+#ifdef ROLE_SIMI
+	int weight = min(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
+			G->edges[v]->size() + G->rev_edges[v]->size());
+	if (weight > 0)
+		w /= weight;
+#endif
+	return sim_nodes[u][v] = w;
 }
 
 #if MULTITHREAD
