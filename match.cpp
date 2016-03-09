@@ -9,10 +9,6 @@
 #include "match.hpp"
 #include "match_vars.hpp"
 
-int int_abs(int x){
-	return x < 0 ? -x : x;
-}
-
 matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 	for (int i=1; i<=g_a->num_nodes; i++)
 		for (int j=1; j<=g->num_nodes; j++)
@@ -46,9 +42,6 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 	graph::subgraph * subg = G->extract_subgraph(v);
 
 	double w = 0;
-#if AVERAGE_EACH_CALC
-	int sum = 0;
-#endif
 	vector <match_edge> match_edges;
 	set <int> flag_a;
 	set <int> flag;
@@ -58,10 +51,6 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 		flag.clear();
 		match_edges.clear();
 		for (int i=0; i < level; i++) {
-#if AVERAGE_EACH_CALC
-			sum += min(subg_a[t].nodes_per_level[i].size(),
-					subg[t].nodes_per_level[i].size());
-#endif
 			for (vector<int> :: iterator j = subg_a[t].nodes_per_level[i].begin();
 					j!=subg_a[t].nodes_per_level[i].end(); j++)
 				for (vector<int> :: iterator k = subg[t].nodes_per_level[i].begin();
@@ -78,18 +67,15 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 				w += it->w;
 			}
 		}
-#if AVERAGE_EACH_CALC
-		w /= sum;
-#endif
 	}
 
 #ifdef ROLE_SIMI
-	int weight = min(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
-			G->edges[v]->size() + G->rev_edges[v]->size());
+	int weight = (int) max(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
+                G->edges[v]->size() + G->rev_edges[v]->size());
 	if (weight > 0)
 		w /= weight;
 #endif
-	return sim_nodes[u][v] = w;
+	return sim_nodes[u][v] = w * (1 - BETA) + BETA;
 }
 
 #if MULTITHREAD
@@ -223,27 +209,24 @@ void matcher::gen_ans_pairs_oldway() {
 	delete []flag;
 }
 
-// Process a batch of pairs after a re-establishment of `weights`
-#ifdef BTCH
-
 void matcher::gen_ans_pairs() {
 	clock_t time_start = clock();
 	ans_pairs.clear();
 	vector<match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
 	char * fake_flag_a = new char[MAX_NODES], * fake_flag = new char[MAX_NODES];
-	memset(flag_a, 0, MAX_NODES);
-	memset(flag, 0, MAX_NODES);
 	memset(fake_flag_a, 0, MAX_NODES);
 	memset(fake_flag, 0, MAX_NODES);
+	memset(flag_a, 0, MAX_NODES);
+	memset(flag, 0, MAX_NODES);
 
 	int * match = new int[MAX_NODES];
 
+	// find seeds
 	for (int i=1; i <= G_a->num_nodes; i++)
 		for (int j=1; j <= G->num_nodes; j++)
 			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
 	sort(match_edges.begin(), match_edges.end());
-
 	for (vector <match_edge> :: iterator it=match_edges.begin();
 			it!=match_edges.end(); it++)
 		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
@@ -259,60 +242,60 @@ void matcher::gen_ans_pairs() {
 			else if (ans_pairs.size() > G_a->num_nodes * PERC_THRSD)
 				break;
 		}
-
 	fprintf(stderr, "First part: %lu pairs.\n", ans_pairs.size());
 
-	int iterno = 0;
 	double TINY = 1e20;
 
+	// find TINY
 	for (int i=1; i<=G_a->num_nodes; i++)
 		for (int j=1; j<=G->num_nodes; j++)
 			if (sim_nodes[i][j] > 0 && TINY > sim_nodes[i][j])
 				TINY = sim_nodes[i][j];
-
 	fprintf(stderr, "TINY = %g\n", TINY);
 
-iter:
-//	fprintf(stderr, "iter %d @ %lu\n", iterno, ans_pairs.size());
+	// initialization
+	for (int i=1; i<=G_a->num_nodes; i++)
+		for (int j=1; j<=G->num_nodes; j++) {
+			weights[i][j] = sim_nodes[i][j];
+			tops[i].push(make_pair(sim_nodes[i][j], j));
+		}
 
-	match_edges.clear();
-	for (int i=1; i<=G_a->num_nodes; i++) {
-		if (!flag_a[i]) {
-			map <int, double> weight;
-			for (vector <int> :: iterator j = G_a->edges[i]->begin();
-					j != G_a->edges[i]->end(); j++)
-				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin();
-							k != G->rev_edges[match[*j]]->end(); k++)
-						if (!flag[*k])
-							weight[*k] += max(sim_nodes[i][*k], TINY);
-				}
-			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin();
-					j != G_a->rev_edges[i]->end(); j++)
-				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->edges[match[*j]]->begin();
-							k != G->edges[match[*j]]->end(); k++)
-						if (!flag[*k])
-							weight[*k] += max(sim_nodes[i][*k], TINY);
-				}
-			for (map <int, double> :: iterator k = weight.begin();
-					k!=weight.end(); k++)
-				match_edges.push_back(match_edge(i, k->first, k->second));
-		}
-	}
-	sort(match_edges.begin(), match_edges.end());
-	for (vector <match_edge> :: iterator it=match_edges.begin();
-			it!=match_edges.end(); it++) {
-		if (it - match_edges.begin() >= NUM_PER_ITER){
-			iterno++;
-			goto iter;
-		}
-		if ( !flag_a[it->u] && !flag[it->v]) {
-			flag_a[it->u] = 1;
-			flag[it->v] = 1;
-			match[it->u] = it->v;
-			ans_pairs.push_back(*it);
-		}
+	// matching process
+	for (int iter=1; iter<=G_a->num_nodes; iter++) {
+		int idx=1;
+		for (int i=1; i<=G_a->num_nodes; i++)
+			if (tops[i].top().first > tops[idx].top().first)
+				idx = i;
+
+		int u = idx, v = tops[idx].top().second;
+		tops[idx].pop();
+		if (flag[v] || flag_a[u])
+			continue;
+
+		flag_a[u] = 1;
+		flag[v] = 1;
+		match[u] = v;
+		ans_pairs.push_back(match_edge(u, v, weights[u][v]));
+
+		for (vector <int> ::iterator i = G_a->edges[u]->begin();
+				i != G_a->edges[u]->end(); i++)
+			if (!flag_a[*i])
+				for (vector <int> ::iterator j = G->edges[v]->begin();
+						j != G->edges[v]->end(); j++)
+					if (!flag[*j]) {
+						weights[*i][*j] += max(sim_nodes[*i][*j], TINY);
+						tops[*i].push(make_pair(weights[*i][*j], *j));
+					}
+
+		for (vector <int> ::iterator i = G_a->rev_edges[u]->begin();
+				i != G_a->rev_edges[u]->end(); i++)
+			if (!flag_a[*i])
+				for (vector <int> ::iterator j = G->rev_edges[v]->begin();
+						j != G->rev_edges[v]->end(); j++)
+					if (!flag[*j]) {
+						weights[*i][*j] += max(sim_nodes[*i][*j], TINY);
+						tops[*i].push(make_pair(weights[*i][*j], *j));
+					}
 	}
 
 	fprintf(stderr, "%lu pairs matched.\n", ans_pairs.size());
@@ -347,162 +330,6 @@ iter:
 			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
 
-#endif
-
-// Dynamically maintain `weights` after each match
-#ifdef DNMC
-void matcher::gen_ans_pairs() {
-	clock_t time_start = clock();
-	ans_pairs.clear();
-	vector<match_edge> match_edges;
-	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
-	char * fake_flag_a = new char[MAX_NODES], * fake_flag = new char[MAX_NODES];
-	memset(flag_a, 0, MAX_NODES);
-	memset(flag, 0, MAX_NODES);
-	memset(fake_flag_a, 0, MAX_NODES);
-	memset(fake_flag, 0, MAX_NODES);
-
-	int * match = new int[MAX_NODES];
-
-	for (int i=1; i <= G_a->num_nodes; i++)
-		for (int j=1; j <= G->num_nodes; j++)
-			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
-	sort(match_edges.begin(), match_edges.end());
-
-	for (vector <match_edge> :: iterator it=match_edges.begin();
-			it!=match_edges.end(); it++)
-		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
-			fake_flag_a[it->u] = 1;
-			fake_flag[it->v] = 1;
-			if (ans_pairs.size() < G_a->num_nodes * PERC_THRSD
-					&& !flag_a[it->u] && !flag[it->v]) {
-				flag_a[it->u] = 1;
-				flag[it->v] = 1;
-				match[it->u] = it->v;
-				ans_pairs.push_back(*it);
-			}
-			if (ans_pairs.size() > G_a->num_nodes * PERC_THRSD)
-				break;
-		}
-
-	fprintf(stderr, "First part: %lu pairs.\n", ans_pairs.size());
-
-	double TINY = 1e20;
-	for (size_t i = 1; i <= G_a->num_nodes; i++) {
-		for (int j = 1; j <= G->num_nodes; j++)
-			if (TINY > sim_nodes[i][j])
-				TINY = sim_nodes[i][j];
-	}
-
-	for (int i=1; i<=G_a->num_nodes; i++) {
-		if (!flag_a[i]) {
-			map <int, double> weight;
-			for (vector <int> :: iterator j = G_a->edges[i]->begin();
-					j != G_a->edges[i]->end(); j++)
-				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->rev_edges[match[*j]]->begin();
-							k != G->rev_edges[match[*j]]->end(); k++)
-						if (!flag[*k])
-							weight[*k] += max(sim_nodes[i][*k], TINY);
-				}
-			for (vector <int> :: iterator j = G_a->rev_edges[i]->begin();
-					j != G_a->rev_edges[i]->end(); j++)
-				if (flag_a[*j]) {
-					for (vector <int> :: iterator k = G->edges[match[*j]]->begin();
-							k != G->edges[match[*j]]->end(); k++)
-						if (!flag[*k])
-							weight[*k] += max(sim_nodes[i][*k], TINY);
-				}
-			for (map <int, double> :: iterator k = weight.begin();
-					k!=weight.end(); k++)
-				weights[i][k->first] = k->second;
-		}
-	}
-
-	fprintf(stderr, "init weights.\n");
-
-	int iterno = 0;
-	H = new matcher::heap(weights, G_a->num_nodes, this);
-
-	for (int last_s = 0, u, v; H->len && ans_pairs.size() != last_s; iterno++) {
-		last_s = ans_pairs.size();
-		while (H->len){
-			u = H->nodes[1].u, v = H->nodes[1].v;
-			H->pop();
-			if (!flag_a[u] && !flag[v])
-				break;
-		}
-		if (flag_a[u] || flag[v])
-			break;
-		flag_a[u] = flag[v] = 1;
-		match[u] = v;
-		ans_pairs.push_back(match_edge(u, v, weights[u][v]));
-
-		for (vector <int> :: iterator j = G_a->edges[u]->begin();
-				j != G_a->edges[u]->end(); j++)
-			if (!flag_a[*j]) {
-				for (vector <int> :: iterator k = G->edges[v]->begin();
-						k != G->edges[v]->end(); k++)
-					if (!flag[*k]){
-						weights[*j][*k] += max(sim_nodes[*j][*k], TINY)
-								* DECAY(iterno);
-						if (H->heap_pos[*j][*k])
-							H->heap_up(H->heap_pos[*j][*k]);
-						else
-							H->push(*j, *k);
-					}
-			}
-
-		for (vector <int> :: iterator j = G_a->rev_edges[u]->begin();
-				j != G_a->rev_edges[u]->end(); j++)
-			if (!flag_a[*j]) {
-				for (vector <int> :: iterator k = G->rev_edges[v]->begin();
-						k != G->rev_edges[v]->end(); k++)
-					if (!flag[*k]){
-						weights[*j][*k] += max(sim_nodes[*j][*k], TINY)
-								* DECAY(iterno);
-						if (H->heap_pos[*j][*k])
-							H->heap_up(H->heap_pos[*j][*k]);
-						else
-							H->push(*j, *k);
-					}
-			}
-	}
-
-	fprintf(stderr, "%lu pairs matched.\n", ans_pairs.size());
-
-	for (std::vector<match_edge> :: iterator it=match_edges.begin();
-			it!=match_edges.end(); it++)
-			if (!flag_a[it->u] && !flag[it->v]){
-				flag_a[it->u] = flag[it->v] = 1;
-				match[it->u] = it->v;
-				ans_pairs.push_back(*it);
-			}
-	fprintf(stderr, "%lu pairs processed.\n", ans_pairs.size());
-
-	for (int i=1; i<=G_a->num_nodes; i++)
-		if (!flag_a[i]) {
-			for (int j=1; j<=G->num_nodes; j++)
-				if (!flag[j]) {
-					flag_a[i] = flag[j] = 1;
-					match[i] = j;
-					ans_pairs.push_back(match_edge(i, j, 0));
-					break;
-				}
-		}
-
-	delete H;
-
-	delete []match;
-	delete []flag_a;
-	delete []flag;
-	delete []fake_flag_a;
-	delete []fake_flag;
-	fprintf(stderr, "answer pairs generated.\n\t%.2lf seconds.\n",
-			(clock()-time_start)*1.0/CLOCKS_PER_SEC);
-}
-#endif
-
 void matcher::print(FILE *ou) {
 	for (vector<match_edge> :: iterator it=ans_pairs.begin();
 			it!=ans_pairs.end(); ++it) {
@@ -515,78 +342,3 @@ void matcher::print(FILE *ou) {
 	}
 }
 
-// ===============
-// matcher::heap
-// heap operations
-
-#ifdef DNMC
-matcher::heap::heap(class matcher *o) {
-	len = 0;
-	owner = o;
-}
-
-matcher::heap::heap(int n, int m, class matcher *o) {
-	owner = o;
-	len = 0;
-	memset(heap_pos, 0, sizeof(heap_pos));
-	for (int i=1; i<=n; i++)
-		for (int j=1; j<=m; j++){
-			heap_pos[i][j] = ++len;
-			nodes[len] = heap_node(i, j);
-		}
-	for (int i=len/2; i>0; i--)
-		heap_down(i);
-}
-
-matcher::heap::heap(map <int, double> *weights, int n, class matcher *o) {
-	owner = o;
-	len = 0;
-	for (int i=1; i<=n; i++){
-		for (std::map<int, double> ::iterator it=weights[i].begin();
-			it != weights[i].end(); it++) {
-			heap_pos[i][it->first] = ++len;
-			nodes[len] = heap_node(i, it->first);
-		}
-	}
-	for (int i=len/2; i>0; i--)
-		heap_down(i);
-}
-
-void matcher::heap::push(int u, int v) {
-	int pos = heap_pos[u][v];
-	if (pos <= len && nodes[pos].u == u && nodes[pos].v == v)
-		return;
-	nodes[++len] = heap_node(u, v);
-	heap_pos[u][v] = len;
-	heap_up(len);
-}
-
-void matcher::heap::heap_down(int x) {
-	for (int ma; heap_lc(x) <= len; x = ma){
-		ma = heap_rc(x) <= len
-			? (heap_v(heap_lc(x)) > heap_v(heap_rc(x))
-				? heap_lc(x) : heap_rc(x))
-			: heap_lc(x);
-		if (heap_v(x) >= heap_v(ma))
-			break;
-		swap(nodes[x], nodes[ma]);
-		swap(heap_p(x), heap_p(ma));
-	}
-}
-
-void matcher::heap::heap_up(int x){
-	for (; heap_fa(x)>0 && heap_v(x) > heap_v(heap_fa(x)); ){
-		swap(nodes[x], nodes[heap_fa(x)]);
-		swap(heap_p(x), heap_p(heap_fa(x)));
-	}
-}
-
-void matcher::heap::pop(){
-	if (len <= 0)
-		return;
-	swap(nodes[1], nodes[len]);
-	swap(heap_p(1), heap_p(len));
-	len--;
-	heap_down(1);
-}
-#endif
