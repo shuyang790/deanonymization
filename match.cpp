@@ -261,21 +261,35 @@ void matcher::gen_ans_pairs() {
 		}
 
 	// matching process
-	for (int iter=1; iter<=G_a->num_nodes; iter++) {
-		int idx=1;
-		for (int i=1; i<=G_a->num_nodes; i++)
-			if (tops[i].top().first > tops[idx].top().first)
-				idx = i;
+	for (int idx, matched=0; matched < G_a->num_nodes; ) {
+
+        idx=-1;
+        for (int i=1; i<=G_a->num_nodes; i++)
+            if (!flag_a[i] && !tops[i].empty()){
+                if (idx == -1)
+                    idx = i;
+                while(!tops[i].empty() && flag[tops[i].top().second])
+                    tops[i].pop();
+                if (!tops[i].empty() && tops[i].top().first > tops[idx].top().first)
+                    idx = i;
+            }
+
+        if (idx < 0)
+            break;
 
 		int u = idx, v = tops[idx].top().second;
 		tops[idx].pop();
 		if (flag[v] || flag_a[u])
 			continue;
 
+        matched++;
 		flag_a[u] = 1;
 		flag[v] = 1;
 		match[u] = v;
 		ans_pairs.push_back(match_edge(u, v, weights[u][v]));
+
+        if (matched % 500 == 0)
+            fprintf(stderr, "\tCurrent: %d\n", matched);
 
 		for (vector <int> ::iterator i = G_a->edges[u]->begin();
 				i != G_a->edges[u]->end(); i++)
