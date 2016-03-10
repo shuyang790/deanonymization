@@ -22,9 +22,6 @@
 
 // ===== running settings =====
 
-//#define DNMC // Dynamically maintain `weights` each time
-#define BTCH // Process a batch of pairs after a re-establishment of `weights`
-
 // MAX rounds of updating each pair of nodes
 #define MAX_ROUNDS 5
 
@@ -44,7 +41,11 @@
 // seed percentage (using baseline)
 #define PERC_THRSD 0.05
 
+// RoleSim parameter
 #define BETA 0.15
+
+// K for topk in simranc stage
+#define SIM_K 100
 
 // ======================
 
@@ -76,8 +77,25 @@ struct match_edge {
 	}
 };
 
+class Less {
+public:
+	bool operator ()(const match_edge &a, const match_edge &b){
+		return a.w < b.w;
+	}
+};
+
+class Greater {
+public:
+	bool operator ()(const match_edge &a, const match_edge &b) {
+		return a.w > b.w;
+	}
+};
+
 class matcher {
 private:
+
+	// current iteration number
+	static int cT;
 
 	// graphs given
 	class graph * G_a;
@@ -98,6 +116,15 @@ private:
 	// priority queues to maintain `weights`
 	priority_queue < pair<double, int> > tops[MAX_NODES];
 
+	// ==================================================
+	priority_queue <match_edge, vector<match_edge>, Greater> topk[MAX_NODES];
+	priority_queue <match_edge, vector<match_edge>, Less> left[MAX_NODES];
+	bool active[MAX_NODES][MAX_NODES];
+	int step[MAX_NODES][MAX_NODES];
+
+	void init_sim_matrix();
+	// ==================================================
+
 public:
 
 	int num_nodes_G_a() const;
@@ -114,6 +141,9 @@ public:
 	void gen_sim_matrix_simranc();
 	void gen_ans_pairs();
 	void gen_ans_pairs_oldway();
+
+	// maintain the valid topk pairs during sim-calculation
+	void maintain_topk(int);
 
 	// print answer pairs
 	void print(FILE *ou);

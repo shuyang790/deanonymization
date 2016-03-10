@@ -64,7 +64,11 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 					&& flag.find(it->v) == flag.end()) {
 				flag_a.insert(it->u);
 				flag.insert(it->v);
-				w += it->w;
+                /* TODO: recondier condition */
+                if (active[it->u][it->v])
+				    w += it->w;
+                else
+                    w += it->w * 0;
 			}
 		}
 	}
@@ -78,12 +82,41 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 	return sim_nodes[u][v] = w * (1 - BETA) + BETA;
 }
 
+void matcher::maintain_topk(int u) {
+
+    priority_queue <match_edge, vector<match_edge>, Greater> tmp;
+    for (int v; !topk[u].empty(); topk[u].pop()){
+        v = topk[u].top().v;
+        calc_sim_nodes(u, v, 1);
+        step[u][v] = cT;
+        tmp.push(match_edge(u, v, sim_nodes[u][v]));
+    }
+    for (; !tmp.empty(); tmp.pop())
+        topk[u].push(tmp.top());
+    for (int v; left[u].top().w > topk[u].top().w; ) {
+        v = left[u].top().v;
+        if (step[u][v] < cT){
+            calc_sim_nodes(u, v, 1);
+            step[u][v] = 1;
+            left[u].pop();
+            left[u].push(match_edge(u, v, sim_nodes[u][v]));
+        }
+        else {
+            topk[u].push(left[u].top());
+            left[u].pop();
+            left[u].push(topk[u].top());
+            topk[u].pop();
+            active[u][v] = 1;
+            active[u][topk[u].top().v] = 0;
+        }
+    }
+}
+
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * arg) {
 	int idx = *(int*)arg;
 	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE)
-		for (int j=1; j<=MTCR->num_nodes_G(); j++)
-			MTCR->calc_sim_nodes(i, j, 1);
+        MTCR->maintain_topk(i);
 	return NULL;
 }
 #endif
@@ -135,9 +168,38 @@ void matcher::load_matrix(char *filename) {
 			filename ? filename : "matrix.txt");
 }
 
+void matcher::init_sim_matrix() {
+    for (int i=1; i<=G_a->num_nodes; i++) {
+        for (int j=1; j<=G->num_nodes; j++) {
+            step[i][j] = 0;
+            int mi = (int) (min(G_a->edges[i]->size(), G->edges[j]->size())
+                            + min(G_a->rev_edges[i]->size(), G->rev_edges[j]->size()));
+            int ma = (int) max(G_a->edges[i]->size() + G_a->rev_edges[i]->size(),
+                                     G->edges[j]->size() + G->rev_edges[j]->size());
+            sim_nodes[i][j] = (ma > 0 ? mi / ma : 0);
+            if (topk[i].size() < SIM_K) {
+                topk[i].push(match_edge(i, j, sim_nodes[i][j]));
+                active[i][j] = 1;
+            }
+            else if (topk[i].top().w < sim_nodes[i][j]) {
+                active[i][topk[i].top().v] = 0;
+                active[i][j] = 1;
+                topk[i].push(match_edge(i, j, sim_nodes[i][j]));
+                topk[i].pop();
+            }
+            else {
+                active[i][j] = 0;
+                left[i].push(match_edge(i, j, sim_nodes[i][j]));
+            }
+        }
+
+    }
+    fprintf(stderr, "sim matrix initialized.\n");
+}
+
 void matcher::gen_sim_matrix_simranc() {
 	clock_t time_start = clock();
-	int cT;
+    init_sim_matrix();
 
 #if MULTITHREAD
 	for (int i=1; i<=G_a->num_nodes; i++)
@@ -221,6 +283,12 @@ void matcher::gen_ans_pairs() {
 	memset(flag, 0, MAX_NODES);
 
 	int * match = new int[MAX_NODES];
+
+    /* TODO: decide inactive sim_nodes */
+    for (int i=1; i <= G_a->num_nodes; i++)
+        for (int j=1; j <= G->num_nodes; j++)
+            if (!active[i][j])
+                sim_nodes[i][j] = 0;
 
 	// find seeds
 	for (int i=1; i <= G_a->num_nodes; i++)
@@ -319,7 +387,7 @@ void matcher::gen_ans_pairs() {
 				ans_pairs.push_back(*it);
 			}
 
-	fprintf(stderr, "%lu pairs processed.\n", ans_pairs.size());
+	fprintf(stderr, "%lu pairs processed.        \n", ans_pairs.size());
 
 	for (int i=1; i<=G_a->num_nodes; i++)
 		if (!flag_a[i]) {

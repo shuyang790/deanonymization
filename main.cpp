@@ -46,11 +46,11 @@ int main(int argc, const char * argv[]) {
 #if DEBUG
 	M->debug_print();
 #endif
-	//M->gen_sim_matrix_simranc();
+	M->gen_sim_matrix_simranc();
 
-	M->load_matrix();
+	//M->load_matrix();
 #if DEBUG
-	//M->record_matrix();
+	M->record_matrix();
 	M->gen_ans_pairs_oldway();
 	FILE * backup_res = fopen("bak_res.txt", "w");
 	M->print(backup_res);
