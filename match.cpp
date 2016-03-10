@@ -288,9 +288,6 @@ void matcher::gen_ans_pairs() {
 		match[u] = v;
 		ans_pairs.push_back(match_edge(u, v, weights[u][v]));
 
-        if (matched % 500 == 0)
-            fprintf(stderr, "\tCurrent: %d\n", matched);
-
 		for (vector <int> ::iterator i = G_a->edges[u]->begin();
 				i != G_a->edges[u]->end(); i++)
 			if (!flag_a[*i])

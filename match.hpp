@@ -89,17 +89,6 @@ private:
 	all_node_pairs sim_nodes;
 	all_node_pairs last_round;
 
-	// sorted sim_nodes
-	struct node_pair {
-		int u, v;
-		all_node_pairs * sims;
-		node_pair(int U=0, int V=0, all_node_pairs *s=0):
-			u(U), v(V), sims(s) {}
-		bool operator < (const struct node_pair &b) const {
-			return sims[u][v] > sims[b.u][b.v];
-		}
-	} sim_pairs[MAX_NODES * MAX_NODES];
-
 	// answer sequence
 	vector<match_edge> ans_pairs;
 
