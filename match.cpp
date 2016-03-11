@@ -111,12 +111,6 @@ void matcher::maintain_topk(int u) {
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * arg) {
 	int idx = *(int*)arg;
-/*    int start = MTCR->num_nodes_G_a()/THREAD_POOL_SIZE * idx + 1;
-    int end = (idx == THREAD_POOL_SIZE ? MTCR->num_nodes_G_a()
-                                       : start + MTCR->num_nodes_G_a() / THREAD_POOL_SIZE - 1);
-    fprintf(stderr, "thread %d: %d-%d\n", idx, start, end);
-    for (int i=start; i<=end; i++)
-    */
 	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE)
         MTCR->maintain_topk(i);
 	return NULL;
@@ -147,7 +141,8 @@ void matcher::record_matrix(char *filename) {
 	fprintf(ou, "%d %d\n", G_a->num_nodes, G->num_nodes);
 	for (int i=1; i<=G_a->num_nodes; i++){
 		for (int j=1; j<=G->num_nodes; j++)
-			fprintf(ou, "%g\t", sim_nodes[i][j]);
+			fprintf(ou, "%g\t", active[i][j]
+                                ? sim_nodes[i][j] : 0);
 		fprintf(ou, "\n");
 	}
 	fclose(ou);
@@ -163,8 +158,10 @@ void matcher::load_matrix(char *filename) {
 	 	in = fopen("matrix.txt", "r");
 	fscanf(in, "%d%d", &(G_a->num_nodes), &(G->num_nodes));
 	for (int i = 1; i <= G_a->num_nodes; i++)
-		for (int j = 1; j <= G->num_nodes; j++)
-			fscanf(in, "%lf", sim_nodes[i]+j);
+		for (int j = 1; j <= G->num_nodes; j++) {
+            fscanf(in, "%lf", sim_nodes[i] + j);
+            active[i][j] = (bool) (sim_nodes[i][j] > 0 ? 1 : 0);
+        }
 	fclose(in);
 	fprintf(stderr, "Matrix read from `%s`\n",
 			filename ? filename : "matrix.txt");
@@ -231,17 +228,6 @@ void matcher::gen_sim_matrix_simranc() {
 		    maintain_topk(i);
 #endif
 
-/*		// normalization
-		double max_ele_nodes = -1;
-		for (int i=1; i<=G_a->num_nodes; i++)
-			for (int j=1; j<=G->num_nodes; j++){
-				double tmp = sim_nodes[i][j];
-				max_ele_nodes = max(max_ele_nodes, tmp);
-			}
-		for (int i=1; i<=G_a->num_nodes; i++)
-			for (int j=1; j<=G->num_nodes; j++)
-				sim_nodes[i][j] /= max_ele_nodes;
-*/
 		fprintf(stderr, "Round %d processed\n", cT);
 	}
 
@@ -292,28 +278,6 @@ void matcher::gen_ans_pairs() {
         for (int j=1; j <= G->num_nodes; j++)
             if (!active[i][j])
                 sim_nodes[i][j] = 0;
-
-	// find seeds
-	for (int i=1; i <= G_a->num_nodes; i++)
-		for (int j=1; j <= G->num_nodes; j++)
-			match_edges.push_back(match_edge(i, j, sim_nodes[i][j]));
-	sort(match_edges.begin(), match_edges.end());
-	for (vector <match_edge> :: iterator it=match_edges.begin();
-			it!=match_edges.end(); it++)
-		if (!fake_flag_a[it->u] && !fake_flag[it->v]) {
-			fake_flag_a[it->u] = 1;
-			fake_flag[it->v] = 1;
-			if (ans_pairs.size() < G_a->num_nodes * PERC_THRSD
-					&& !flag_a[it->u] && !flag[it->v]) {
-				flag_a[it->u] = 1;
-				flag[it->v] = 1;
-				match[it->u] = it->v;
-				ans_pairs.push_back(*it);
-			}
-			else if (ans_pairs.size() > G_a->num_nodes * PERC_THRSD)
-				break;
-		}
-	fprintf(stderr, "First part: %lu pairs.\n", ans_pairs.size());
 
 	double TINY = 1e20;
 
