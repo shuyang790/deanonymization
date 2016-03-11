@@ -33,14 +33,12 @@ int main(int argc, const char * argv[]) {
 		G = new graph(tmp);
 	}
 	else {
-		//graph G_a("anonymized.txt");
-		//graph G("crawled.txt");
-
-//		G_a = new graph("data/100\%naive/anonymized.txt");
-//		G = new graph("data/100\%naive/crawled.txt");
-
+#if DEBUG
 		G_a = new graph("data/50\%naive/anonymized.txt");
 		G = new graph("data/50\%naive/crawled.txt");
+#else
+        fprintf(stderr, "Incorrect parameters... Exit.\n");
+#endif
 	}
 	matcher *M = new matcher(G_a, G);
 #if DEBUG
@@ -52,11 +50,13 @@ int main(int argc, const char * argv[]) {
 #if DEBUG
 	M->record_matrix();
 	M->gen_ans_pairs_oldway();
+
 	FILE * backup_res = fopen("bak_res.txt", "w");
 	M->print(backup_res);
 	fclose(backup_res);
 	fprintf(stderr, "old ways result generated in `bak_res.txt`.\n");
 #endif
+
 	M->gen_ans_pairs();
 	M->print(stdout);
 

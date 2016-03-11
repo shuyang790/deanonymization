@@ -33,8 +33,6 @@
 
 #define USE_ONLY_NEIGHBORS
 
-#define ROLE_SIMI
-
 // ============================
 
 // ===== parameters =====
@@ -59,7 +57,6 @@
 #endif
 
 using namespace std;
-
 
 #if MULTITHREAD
 static pthread_t threads[THREAD_POOL_SIZE];
@@ -117,6 +114,7 @@ private:
 	priority_queue < pair<double, int> > tops[MAX_NODES];
 
 	// ==================================================
+	priority_queue <match_edge, vector<match_edge>, Greater> tmp[MAX_NODES];
 	priority_queue <match_edge, vector<match_edge>, Greater> topk[MAX_NODES];
 	priority_queue <match_edge, vector<match_edge>, Less> left[MAX_NODES];
 	bool active[MAX_NODES][MAX_NODES];

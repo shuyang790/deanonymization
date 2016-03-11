@@ -32,10 +32,6 @@ graph::graph(const char * file_name){
 	fprintf(stderr, "Graph read: %d, %d\n", num_nodes, num_edges);
 }
 
-int graph::out_deg(int i) {
-	return edges[i]->size();
-}
-
 graph::subgraph * graph::extract_subgraph(int node){
 	if (subgraphs[node])
 		return subgraphs[node];

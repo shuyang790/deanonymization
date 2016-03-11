@@ -64,50 +64,46 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 					&& flag.find(it->v) == flag.end()) {
 				flag_a.insert(it->u);
 				flag.insert(it->v);
-                /* TODO: recondier condition */
+                /* ignore inactive pairs */
                 if (active[it->u][it->v])
 				    w += it->w;
-                else
-                    w += it->w * 0;
 			}
 		}
 	}
 
-#ifdef ROLE_SIMI
+    // RoleSim
 	int weight = (int) max(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
                 G->edges[v]->size() + G->rev_edges[v]->size());
 	if (weight > 0)
 		w /= weight;
-#endif
-	return sim_nodes[u][v] = w * (1 - BETA) + BETA;
+    return sim_nodes[u][v] = w * (1 - BETA) + BETA;
 }
 
 void matcher::maintain_topk(int u) {
 
-    priority_queue <match_edge, vector<match_edge>, Greater> tmp;
     for (int v; !topk[u].empty(); topk[u].pop()){
         v = topk[u].top().v;
         calc_sim_nodes(u, v, 1);
         step[u][v] = cT;
-        tmp.push(match_edge(u, v, sim_nodes[u][v]));
+        tmp[u].push(match_edge(u, v, sim_nodes[u][v]));
     }
-    for (; !tmp.empty(); tmp.pop())
-        topk[u].push(tmp.top());
+    for (; !tmp[u].empty(); tmp[u].pop())
+        topk[u].push(tmp[u].top());
     for (int v; left[u].top().w > topk[u].top().w; ) {
         v = left[u].top().v;
         if (step[u][v] < cT){
             calc_sim_nodes(u, v, 1);
-            step[u][v] = 1;
+            step[u][v] = cT;
             left[u].pop();
             left[u].push(match_edge(u, v, sim_nodes[u][v]));
         }
         else {
+            active[u][v] = 1;
+            active[u][topk[u].top().v] = 0;
             topk[u].push(left[u].top());
             left[u].pop();
             left[u].push(topk[u].top());
             topk[u].pop();
-            active[u][v] = 1;
-            active[u][topk[u].top().v] = 0;
         }
     }
 }
@@ -115,6 +111,12 @@ void matcher::maintain_topk(int u) {
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * arg) {
 	int idx = *(int*)arg;
+/*    int start = MTCR->num_nodes_G_a()/THREAD_POOL_SIZE * idx + 1;
+    int end = (idx == THREAD_POOL_SIZE ? MTCR->num_nodes_G_a()
+                                       : start + MTCR->num_nodes_G_a() / THREAD_POOL_SIZE - 1);
+    fprintf(stderr, "thread %d: %d-%d\n", idx, start, end);
+    for (int i=start; i<=end; i++)
+    */
 	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE)
         MTCR->maintain_topk(i);
 	return NULL;
@@ -184,8 +186,9 @@ void matcher::init_sim_matrix() {
             else if (topk[i].top().w < sim_nodes[i][j]) {
                 active[i][topk[i].top().v] = 0;
                 active[i][j] = 1;
-                topk[i].push(match_edge(i, j, sim_nodes[i][j]));
+                left[i].push(topk[i].top());
                 topk[i].pop();
+                topk[i].push(match_edge(i, j, sim_nodes[i][j]));
             }
             else {
                 active[i][j] = 0;
@@ -225,11 +228,10 @@ void matcher::gen_sim_matrix_simranc() {
 			pthread_join(threads[i], NULL);
 #else
 		for (int i=1; i<=G_a->num_nodes; i++)
-			for (int j=1; j<=G->num_nodes; j++)
-				calc_sim_nodes_singleth(i, j);
+		    maintain_topk(i);
 #endif
 
-		// normalization
+/*		// normalization
 		double max_ele_nodes = -1;
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++){
@@ -239,6 +241,7 @@ void matcher::gen_sim_matrix_simranc() {
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++)
 				sim_nodes[i][j] /= max_ele_nodes;
+*/
 		fprintf(stderr, "Round %d processed\n", cT);
 	}
 
@@ -284,7 +287,7 @@ void matcher::gen_ans_pairs() {
 
 	int * match = new int[MAX_NODES];
 
-    /* TODO: decide inactive sim_nodes */
+    // ignore inactive pairs
     for (int i=1; i <= G_a->num_nodes; i++)
         for (int j=1; j <= G->num_nodes; j++)
             if (!active[i][j])
@@ -332,15 +335,16 @@ void matcher::gen_ans_pairs() {
 	for (int idx, matched=0; matched < G_a->num_nodes; ) {
 
         idx=-1;
-        for (int i=1; i<=G_a->num_nodes; i++)
-            if (!flag_a[i] && !tops[i].empty()){
+        for (int i=1; i<=G_a->num_nodes; i++) {
+            while (!tops[i].empty() && flag[tops[i].top().second])
+                tops[i].pop();
+            if (!flag_a[i] && !tops[i].empty()) {
                 if (idx == -1)
                     idx = i;
-                while(!tops[i].empty() && flag[tops[i].top().second])
-                    tops[i].pop();
-                if (!tops[i].empty() && tops[i].top().first > tops[idx].top().first)
+                else if (!tops[i].empty() && tops[i].top().first > tops[idx].top().first)
                     idx = i;
             }
+        }
 
         if (idx < 0)
             break;
@@ -378,27 +382,6 @@ void matcher::gen_ans_pairs() {
 	}
 
 	fprintf(stderr, "%lu pairs matched.\n", ans_pairs.size());
-
-	for (vector<match_edge> :: iterator it=match_edges.begin();
-			it!=match_edges.end(); it++)
-			if (!flag_a[it->u] && !flag[it->v]){
-				flag_a[it->u] = flag[it->v] = 1;
-				match[it->u] = it->v;
-				ans_pairs.push_back(*it);
-			}
-
-	fprintf(stderr, "%lu pairs processed.        \n", ans_pairs.size());
-
-	for (int i=1; i<=G_a->num_nodes; i++)
-		if (!flag_a[i]) {
-			for (int j=1; j<=G->num_nodes; j++)
-				if (!flag[j]) {
-					flag_a[i] = flag[j] = 1;
-					match[i] = j;
-					ans_pairs.push_back(match_edge(i, j, 0));
-					break;
-				}
-		}
 
 	delete []match;
 	delete []flag_a;

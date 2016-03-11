@@ -44,10 +44,7 @@ public:
 public:
 	graph(const char * file_name);
 
-	int out_deg(int);
-
 	subgraph * extract_subgraph(int node);
-//	vector<int> * extract_neighbors(int node);
 
 	friend class matcher;
 	friend class analyst;
