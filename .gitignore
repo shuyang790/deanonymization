@@ -4,7 +4,10 @@ analysis.txt
 data/.DS_Store
 main
 tags
+src/tags
 *.o
+src/*.o
 *.pyc
+src/*.pyc
 debug.info
 bak_res.txt
