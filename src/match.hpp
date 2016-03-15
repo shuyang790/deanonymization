@@ -140,6 +140,9 @@ public:
 	void gen_ans_pairs();
 	void gen_ans_pairs_oldway();
 
+	// print most similar nodes to evaluate matrix
+	void print_top_simi();
+
 	// maintain the valid topk pairs during sim-calculation
 	void maintain_topk(int);
 

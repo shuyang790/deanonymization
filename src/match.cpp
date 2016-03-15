@@ -17,6 +17,17 @@ matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 			sim_nodes[i][j] = 1;
 }
 
+void matcher::print_top_simi() {
+	FILE *ou = fopen("most_simi.log", "w");
+	for (int i=1, j, k; i<=G_a->num_nodes; i++) {
+		for (j=k=1; k<=G->num_nodes; k++)
+			if (sim_nodes[i][k] > sim_nodes[i][j])
+				j = k;
+		fprintf(ou, "%d %d\n", i, j);
+	}
+	fclose(ou);
+}
+
 void matcher::debug_print() {
 	FILE *ou = fopen("debug.info", "w");
 	fprintf(ou, "G_a: %d nodes,\t G:%d nodes.\n",
@@ -72,6 +83,8 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 		            if (active[it->u][it->v])
 					    w += it->w;
 				}
+				else
+					w += it->w;
 			}
 		}
 	}
@@ -261,11 +274,12 @@ void matcher::gen_sim_matrix_simranc() {
 		fprintf(stderr, "Round %d processed\n", cT);
 	}
 
-	fprintf(stderr, "matcher info\n\t%d rounds, %.2lf seconds.\n",
+	fprintf(stderr, "matcher info:\t%d rounds, %.2lf seconds.\n",
 			MAX_ROUNDS, (clock()-time_start)*1.0/CLOCKS_PER_SEC);
 }
 
 void matcher::gen_ans_pairs_oldway() {
+	fprintf(stderr, "gen ans pairs old way\n");
 	ans_pairs.clear();
 	vector<match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];

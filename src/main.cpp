@@ -39,6 +39,7 @@ int main(int argc, const char * argv[]) {
 	M->debug_print();
 #endif
 	M->gen_sim_matrix_simranc();
+	M->print_top_simi();
 
 #if DEBUG
 	//M->load_matrix();

@@ -31,7 +31,7 @@ def compare(prog_output, correct_pair, num_nodes, max_correct_num, output, flag=
 		i = i + 1
 
 	f.close()
-	print ("%s finished.\n" % prog_output)
+	print ("[Info] Scored matches in `%s`." % prog_output)
 
 if __name__ == "__main__":
 #	compare("result/LOG50sparsify", "data/50%sparsify/pair_a_c.txt", 7500, 5000, "result/50sparsify")
