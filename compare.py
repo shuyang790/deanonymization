@@ -37,8 +37,12 @@ if __name__ == "__main__":
 #	compare("result/LOG50sparsify", "data/50%sparsify/pair_a_c.txt", 7500, 5000, "result/50sparsify")
 #	compare("bak_res.txt", "data/50%sparsify/pair_a_c.txt", 7500, 5000, "result/50sparsify_old_way")
 
-	compare("result/LOG50naive_RSnew", "data/50%naive/pair_a_c.txt", 7500, 5000, "result/50naive_RSnew")
-	compare("bak_res.txt", "data/50%naive/pair_a_c.txt", 7500, 5000, "result/50naive_RSnew_old_way")
+#	compare("result/LOG50naive_RSnew", "data/50%naive/pair_a_c.txt", 7500, 5000, "result/50naive_RSnew")
+#	compare("bak_res.txt", "data/50%naive/pair_a_c.txt", 7500, 5000, "result/50naive_RSnew_old_way")
 
 #	compare("bak_res.txt", "data/100%/pair_a_c.txt", 10000, 10000, "result/100_old_way")
 #	compare("result/LOG100", "data/100%/pair_a_c.txt", 10000, 10000, "result/100")
+        
+        compare("result/algo_pair.log", "data/pair_a_c.txt", 2000, 2000, "result/algo_onetime.log")
+
+        pass
