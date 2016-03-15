@@ -11,43 +11,37 @@
 #include "match.hpp"
 #include "data_analysis.hpp"
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define STR_LEN 128
 
+int BASELINE;
+
 int main(int argc, const char * argv[]) {
 
-	char str[STR_LEN], tmp[STR_LEN];
+	if (argc == 2){
+		if (!strcmp(argv[1], "baseline")){
+			BASELINE = 1;
+		}
+		else {
+			fprintf(stderr, "Incorrect argument!\n\n");
+			return 0;
+		}
+	}
+
 	graph *G_a, *G;
 
-	if (argc == 3){
-		strcpy(str, "data/");
-		strcat(str, argv[1]);
-		strcat(str, "\%");
-		strcat(str, argv[2]);
-		strcpy(tmp, str);
-		strcat(tmp, "/anonymized.txt");
-		G_a = new graph(tmp);
-		strcpy(tmp, str);
-		strcat(tmp, "/crawled.txt");
-		G = new graph(tmp);
-	}
-	else {
-#if DEBUG
-		G_a = new graph("data/50\%naive/anonymized.txt");
-		G = new graph("data/50\%naive/crawled.txt");
-#else
-        fprintf(stderr, "Incorrect parameters... Exit.\n");
-#endif
-	}
+	G_a = new graph("data/anonymized.txt");
+	G = new graph("data/crawled.txt");
+
 	matcher *M = new matcher(G_a, G);
 #if DEBUG
 	M->debug_print();
 #endif
 	M->gen_sim_matrix_simranc();
 
-	//M->load_matrix();
 #if DEBUG
+	//M->load_matrix();
 	M->record_matrix();
 	M->gen_ans_pairs_oldway();
 
@@ -57,7 +51,10 @@ int main(int argc, const char * argv[]) {
 	fprintf(stderr, "old ways result generated in `bak_res.txt`.\n");
 #endif
 
-	M->gen_ans_pairs();
+	if (!BASELINE)
+		M->gen_ans_pairs();
+	else
+		M->gen_ans_pairs_oldway();
 	M->print(stdout);
 
     return 0;

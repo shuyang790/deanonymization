@@ -6,7 +6,7 @@ By Shuyang (And Jialin Liu) | Started @ Sept, 2015
 - [Project Description](#desc)
 - [Skeleton](#sklt)
 - [Performance](#pfmc)
-- [Next Step](#next)
+- [Experiment Tool](#next)
 
 
 ## Description <span id="desc"></span>
@@ -19,7 +19,5 @@ and then use specific methods to match them into answer pairs.
 ## Performance <span id="pfmc"></span>
 Our algorithm has a satisfying performance with considerable improvement compared with baseline algorithm.
 
-## Next Step <span id="next"></span>
-
-- Further refinement
-- Paperwork and more experiments
+## Experiment Tool <span id="expr"></span>
+See `run.py`

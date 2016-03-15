@@ -3,6 +3,7 @@ analysis.txt
 .DS_Store
 data/.DS_Store
 main
+build
 tags
 src/tags
 *.o
@@ -11,3 +12,4 @@ src/*.o
 src/*.pyc
 debug.info
 bak_res.txt
+result/*.log

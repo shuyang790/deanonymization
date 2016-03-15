@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys
 
-def compare(prog_output, correct_pair, num_nodes, max_correct_num, output):
+def compare(prog_output, correct_pair, num_nodes, max_correct_num, output, flag=0):
 	f_p = open(prog_output)
 	p_lines = f_p.readlines() # G_a, G
 	f_p.close()
@@ -24,7 +24,10 @@ def compare(prog_output, correct_pair, num_nodes, max_correct_num, output):
 		eles = p_line.split()
 		if eval(eles[1]) == dic[eval(eles[0])] and eval(eles[1]) <= max_correct_num:
 			correct += 1
-		f.write("G1: %s GA: %s G2: %d Total: %.2f%%\n" % (eles[1], eles[0], dic[eval(eles[0])], correct * 100.0 / i))
+		if flag == 0:
+			f.write("G1: %s GA: %s G2: %d Total: %.2f%%\n" % (eles[1], eles[0], dic[eval(eles[0])], correct * 100.0 / i))
+		else:
+			f.write("%d %d\n" % (i, correct)
 		i = i + 1
 
 	f.close()

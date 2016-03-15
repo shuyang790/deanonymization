@@ -9,6 +9,8 @@
 #include "match.hpp"
 #include "match_vars.hpp"
 
+extern int BASELINE;
+
 matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 	for (int i=1; i<=g_a->num_nodes; i++)
 		for (int j=1; j<=g->num_nodes; j++)
@@ -64,19 +66,27 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 					&& flag.find(it->v) == flag.end()) {
 				flag_a.insert(it->u);
 				flag.insert(it->v);
-                /* ignore inactive pairs */
-                if (active[it->u][it->v])
-				    w += it->w;
+
+				if (!BASELINE) {
+	                /* ignore inactive pairs */
+		            if (active[it->u][it->v])
+					    w += it->w;
+				}
 			}
 		}
 	}
 
-    // RoleSim
-	int weight = (int) max(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
+    if (!BASELINE){
+		// RoleSim
+		int weight = (int) max(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
                 G->edges[v]->size() + G->rev_edges[v]->size());
-	if (weight > 0)
-		w /= weight;
-    return sim_nodes[u][v] = w * (1 - BETA) + BETA;
+		if (weight > 0)
+			w /= weight;
+		return sim_nodes[u][v] = w * (1 - BETA) + BETA;
+	}
+	else {
+		return sim_nodes[u][v] = w;
+	}
 }
 
 void matcher::maintain_topk(int u) {
@@ -111,8 +121,14 @@ void matcher::maintain_topk(int u) {
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * arg) {
 	int idx = *(int*)arg;
-	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE)
-        MTCR->maintain_topk(i);
+	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE){
+        if (!BASELINE)
+			MTCR->maintain_topk(i);
+		else {
+			for (int j=1; j<=MTCR->num_nodes_G(); j++)
+				MTCR->calc_sim_nodes(i, j, 1);
+		}
+	}
 	return NULL;
 }
 #endif
@@ -199,7 +215,14 @@ void matcher::init_sim_matrix() {
 
 void matcher::gen_sim_matrix_simranc() {
 	clock_t time_start = clock();
-    init_sim_matrix();
+
+	if (!BASELINE)
+	    init_sim_matrix();
+	else {
+		for (int i=1; i<=G_a->num_nodes; i++)
+			for (int j=1; j<=G->num_nodes; j++)
+				sim_nodes[i][j] = 1;
+	}
 
 #if MULTITHREAD
 	for (int i=1; i<=G_a->num_nodes; i++)
@@ -224,8 +247,15 @@ void matcher::gen_sim_matrix_simranc() {
 		for (int i=0; i<THREAD_POOL_SIZE; i++)
 			pthread_join(threads[i], NULL);
 #else
-		for (int i=1; i<=G_a->num_nodes; i++)
-		    maintain_topk(i);
+		if (!BASELINE) {
+			for (int i=1; i<=G_a->num_nodes; i++)
+				maintain_topk(i);
+		}
+		else {
+			for (int i=1; i<=G_a->num_nodes; i++)
+				for (int j=1; j<-=G->num_nodes; j++)
+					calc_sim_nodes(i, j, 1);
+		}
 #endif
 
 		fprintf(stderr, "Round %d processed\n", cT);
