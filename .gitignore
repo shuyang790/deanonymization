@@ -14,3 +14,4 @@ src/*.pyc
 debug.info
 bak_res.txt
 result/*.log
+result

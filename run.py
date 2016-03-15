@@ -26,7 +26,7 @@ def gen_graph(method, nodes, overlap):
             f.write(line)
     system("(cd databuilder; make graph)")
     system("(cd databuilder; mv data/graph1.txt ../data/crawled.txt)")
-    system("(cd databuilder; mv data/graph2.txt ../data/anonymized.txt)")
+    system("(cd databuilder; mv data/graphTarget.txt ../data/anonymized.txt)")
     system("(cd databuilder; mv data/pair.txt ../data/pair_a_c.txt)")
 
 def extract_res(filename, num_nodes):
