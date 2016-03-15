@@ -21,7 +21,7 @@ def gen_graph(method, nodes, overlap):
         f.write("OVERLAP=" + str(overlap) + "\n")
         f.write("NODE=" + str(nodes) + "\n")
         f.write("ENCRYPT=" + str(method) + "\n")
-        for line in lines[3:]
+        for line in lines[3:]:
             f.write(line)
     system("(cd databuilder; make graph;)")
     system("(cd databuilder; mv data/graph1.txt ../data/crawled.txt;)")

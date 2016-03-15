@@ -27,7 +27,7 @@ def compare(prog_output, correct_pair, num_nodes, max_correct_num, output, flag=
 		if flag == 0:
 			f.write("G1: %s GA: %s G2: %d Total: %.2f%%\n" % (eles[1], eles[0], dic[eval(eles[0])], correct * 100.0 / i))
 		else:
-			f.write("%d %d\n" % (i, correct)
+			f.write("%d %d\n" % (i, correct))
 		i = i + 1
 
 	f.close()
