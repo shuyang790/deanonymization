@@ -13,9 +13,17 @@
 
 #define DEBUG 0
 
-#define STR_LEN 128
-
 int main(int argc, const char * argv[]) {
+
+#ifdef BASELINE
+	fprintf(stderr, "De-anonymizing ... version = BASELINE\n");
+#else
+#ifdef TOPK
+	fprintf(stderr, "De-anonymizing ... version = TOPK\n");
+#else
+	fprintf(stderr, "De-anonymizing ... version = RoleSim (not TOPK)\n");
+#endif
+#endif
 
 	graph *G_a, *G;
 

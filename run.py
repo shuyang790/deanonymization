@@ -6,6 +6,13 @@ from time import time, localtime, strftime, sleep
 
 ISOTIMEFORMAT = '%Y-%m-%d-%X'
 
+versions = [
+        "topk", "algo", "base"
+    ]
+anonymization_name = [
+        "naive", "sparsify", "switching"
+    ]
+
 def init():
     system("(cd databuilder; mkdir bin; mkdir data)")
     system("(cd databuilder; make bins)")
@@ -46,16 +53,18 @@ def extract_res(filename, num_nodes):
             ret[idx-1] = correct
     return ret
 
-def build_exec():
-    system("(mkdir build; cd build; cmake ..; make; rm -rf build)")
-
 def run_prog(name, nodes, overlap):
+    system("rm -rf build")
+    if name == "base":
+        system("(mkdir build; cd build; cmake .. -DBASELINE=ON; make)")
+    elif name == "algo":
+        system("(mkdir build; cd build; cmake .. -DTOPK=OFF; make)")
+    elif name == "topk":
+        system("(mkdir build; cd build; cmake ..; make)")
+
     print ("\n[Running] `" + name + "` ...")
     start_time = time()
-    if name == "base":
-        system("time ./main baseline > result/base_pair.log")
-    else:
-        system("time ./main > result/" + name + "_pair.log")
+    system("time ./main > result/" + name + "_pair.log")
     end_time = time()
     compare("result/" + name + "_pair.log", \
             "data/pair_a_c.txt", \
@@ -77,16 +86,19 @@ def run_prog(name, nodes, overlap):
         if (line != ""):
             simi_correct = eval(line.split(" ")[1])
 
-    return (extract_res("result/" + name + "_onetime.log", (nodes - overlap) / 2 + overlap), \
-            end_time - start_time,\
-            simi_correct)
+    ret = {
+            "tot": extract_res("result/" + name + "_onetime.log", (nodes - overlap) / 2 + overlap),
+            "time": end_time - start_time,
+            "simi": simi_correct
+            }
+    return ret
 
 def test(method, nodes, overlap):
     gen_graph(method, nodes, overlap)
-    build_exec()
-    (res_algo, time_algo, simi_algo) = run_prog("algo", nodes, overlap)
-    (res_base, time_base, simi_base) = run_prog("base", nodes, overlap)
-    return (res_algo, res_base, time_algo, time_base, simi_algo, simi_base)
+    ret = {}
+    for v in versions:
+        ret[v] = run_prog(v, nodes, overlap) 
+    return ret
 
 
 def main():
@@ -98,46 +110,46 @@ def main():
     init()
 
     num_nodes = (N-O)/2+O
-    tot_algo = [0 for i in xrange(num_nodes)]
-    tot_base = [0 for i in xrange(num_nodes)]
-    time_algo = 0
-    time_base = 0
-    simi_algo = 0
-    simi_base = 0
+    results = {}
+    for v in versions:
+        result = {
+                "tot": [0 for i in xrange(num_nodes)],
+                "time": 0,
+                "simi": 0
+                }
+        results[v] = result
     for i in range(T):
         print ("\n===== Testing dataset %d =====" % (i,))
-        (cur_algo, cur_base, curt_algo, curt_base, curs_algo, curs_base) = test(M, N, O)
+        cur_results = test(M, N, O)
+        for v in versions:
+            for u in xrange(num_nodes):
+                results[v]["tot"][u] += cur_results[v]["tot"][u]
+            results[v]["time"] += cur_results[v]["time"]
+            results[v]["simi"] += cur_results[v]["simi"]
+       
+    for v in versions:
         for u in xrange(num_nodes):
-            tot_algo[u] += cur_algo[u]
-            tot_base[u] += cur_base[u]
-        time_algo += curt_algo
-        time_base += curt_base
-        simi_algo += curs_algo
-        simi_base += curs_base
-    for u in xrange(num_nodes):
-        tot_algo[u] /= T
-        tot_base[u] /= T
-    time_algo /= T
-    time_base /= T
-    simi_base /= T
-    simi_algo /= T
+            results[v]["tot"][u] /= T
+        results[v]["time"] /= T
+        results[v]["simi"] /= T
 
     dirname = strftime(ISOTIMEFORMAT, localtime())\
             .replace(' ', '-')\
             .replace(':', '-')
     system("mkdir result/%s" % (dirname))
-    with open("result/" + dirname + "/algo_ave.res", "w") as f:
-        for u in xrange(num_nodes):
-            f.write(str(u+1) + " " + str(tot_algo[u]) + "\n")
-    with open("result/" + dirname + "/base_ave.res", "w") as f:
-        for u in xrange(num_nodes):
-            f.write(str(u+1) + " " + str(tot_base[u]) + "\n")
+    system('echo "Testing @ %s" > README' % dirname)
+    system('echo "%d Cases, %s anonymization, %d nodes in generator, %d overlap nodes"'\
+            % (T, anonymization_name[M], N, O))
+    for v in versions:
+        with open("result/" + dirname + "/" + v + "_ave.res", "w") as f:
+            for u in xrange(num_nodes):
+                f.write(str(u+1) + " " + str(results[v]["tot"][u]) + "\n")
     with open("result/" + dirname + "/time_cost.res", "w") as f:
-        f.write("proposed_algorithm %.2f\n" % time_algo)
-        f.write("baseline_algorithm %.2f\n" % time_base)
+        for v in versions:
+            f.write("version: %s\ttime: %.2f\n" % (v, results[v]["time"]))
     with open("result/" + dirname + "/simi_pairs.res", "w") as f:
-        f.write("proposed_algorithm %.2f\n" % simi_algo)
-        f.write("baseline_algorithm %.2f\n" % simi_base)
+        for v in versions:
+            f.write("version: %s\tsimi: %.2f\n" % (v, results[v]["simi"]))
 
     clean()
 

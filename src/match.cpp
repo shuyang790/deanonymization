@@ -23,10 +23,17 @@ void matcher::print_top_simi() {
 				if (sim_nodes[i][k] > sim_nodes[i][j])
 					j = k;
 #else
+#ifdef TOPK
 			for (j=1; j<=G_a->num_nodes && !active[i][j]; j++);
 			for (k=j+1; k<=G->num_nodes; k++)
 				if (active[i][k] && sim_nodes[i][k] > sim_nodes[i][j])
 					j = k;
+#else
+        for (j=k=1; k<=G->num_nodes; k++)
+            if (sim_nodes[i][k] > sim_nodes[i][j])
+                j = k;
+
+#endif
 #endif
 		fprintf(ou, "%d %d\n", i, j);
 	}
@@ -84,9 +91,13 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 				flag.insert(it->v);
 
 #ifndef BASELINE
+#ifdef TOPK
 	                /* ignore inactive pairs */
 		            if (active[it->u][it->v])
 					    w += it->w;
+#else
+                    w += it->w;
+#endif
 #else
 					w += it->w;
 #endif
@@ -106,6 +117,7 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 #endif
 }
 
+#ifdef TOPK
 void matcher::maintain_topk(int u) {
 
     for (int v; !topk[u].empty(); topk[u].pop()){
@@ -134,13 +146,19 @@ void matcher::maintain_topk(int u) {
         }
     }
 }
+#endif
 
 #if MULTITHREAD
 void * calc_sim_nodes_pthread(void * arg) {
 	int idx = *(int*)arg;
 	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE){
 #ifndef BASELINE
+#ifdef TOPK
 			MTCR->maintain_topk(i);
+#else
+        for (int j=1; j<=MTCR->num_nodes_G(); j++)
+            MTCR->calc_sim_nodes(i, j, 1);
+#endif
 #else
 			for (int j=1; j<=MTCR->num_nodes_G(); j++)
 				MTCR->calc_sim_nodes(i, j, 1);
@@ -158,13 +176,6 @@ int matcher::num_nodes_G() const {
 	return G->num_nodes;
 }
 
-void matcher::calc_sim_nodes_singleth(int i, int j, bool flag){
-	if (flag)
-		calc_sim_nodes(i, j, 2);
-	else
-		calc_sim_nodes(i, j, 1);
-}
-
 void matcher::record_matrix(char *filename) {
 	FILE *ou;
 	if (filename)
@@ -174,8 +185,12 @@ void matcher::record_matrix(char *filename) {
 	fprintf(ou, "%d %d\n", G_a->num_nodes, G->num_nodes);
 	for (int i=1; i<=G_a->num_nodes; i++){
 		for (int j=1; j<=G->num_nodes; j++)
+#ifdef TOPK
 			fprintf(ou, "%g\t", active[i][j]
                                 ? sim_nodes[i][j] : 0);
+#else
+            fprintf(ou, "%g\t", sim_nodes[i][j]);
+#endif
 		fprintf(ou, "\n");
 	}
 	fclose(ou);
@@ -193,13 +208,16 @@ void matcher::load_matrix(char *filename) {
 	for (int i = 1; i <= G_a->num_nodes; i++)
 		for (int j = 1; j <= G->num_nodes; j++) {
             fscanf(in, "%lf", sim_nodes[i] + j);
+#ifdef TOPK
             active[i][j] = (bool) (sim_nodes[i][j] > 0 ? 1 : 0);
+#endif
         }
 	fclose(in);
 	fprintf(stderr, "Matrix read from `%s`\n",
 			filename ? filename : "matrix.txt");
 }
 
+#ifdef TOPK
 void matcher::init_sim_matrix() {
     for (int i=1; i<=G_a->num_nodes; i++) {
         for (int j=1; j<=G->num_nodes; j++) {
@@ -229,12 +247,19 @@ void matcher::init_sim_matrix() {
     }
     fprintf(stderr, "sim matrix initialized.\n");
 }
+#endif
 
 void matcher::gen_sim_matrix_simranc() {
 	clock_t time_start = clock();
 
 #ifndef BASELINE
+#ifdef TOPK
 	    init_sim_matrix();
+#else
+    for (int i=1; i<=G_a->num_nodes; i++)
+        for (int j=1; j<=G->num_nodes; j++)
+            sim_nodes[i][j] = 1;
+#endif
 #else
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++)
@@ -310,7 +335,6 @@ void matcher::gen_ans_pairs_oldway() {
 void matcher::gen_ans_pairs() {
 	clock_t time_start = clock();
 	ans_pairs.clear();
-	vector<match_edge> match_edges;
 	char * flag_a = new char[MAX_NODES], * flag = new char[MAX_NODES];
 	char * fake_flag_a = new char[MAX_NODES], * fake_flag = new char[MAX_NODES];
 	memset(fake_flag_a, 0, MAX_NODES);
@@ -320,11 +344,13 @@ void matcher::gen_ans_pairs() {
 
 	int * match = new int[MAX_NODES];
 
+#ifdef TOPK
     // ignore inactive pairs
     for (int i=1; i <= G_a->num_nodes; i++)
         for (int j=1; j <= G->num_nodes; j++)
             if (!active[i][j])
                 sim_nodes[i][j] = 0;
+#endif
 
 	double TINY = 1e20;
 

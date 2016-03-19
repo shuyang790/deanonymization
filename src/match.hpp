@@ -36,8 +36,6 @@
 // ============================
 
 // ===== parameters =====
-// seed percentage (using baseline)
-#define PERC_THRSD 0.05
 
 // RoleSim parameter
 #define BETA 0.15
@@ -114,6 +112,7 @@ private:
 	priority_queue < pair<double, int> > tops[MAX_NODES];
 
 	// ==================================================
+#ifdef TOPK
 	priority_queue <match_edge, vector<match_edge>, Greater> tmp[MAX_NODES];
 	priority_queue <match_edge, vector<match_edge>, Greater> topk[MAX_NODES];
 	priority_queue <match_edge, vector<match_edge>, Less> left[MAX_NODES];
@@ -121,6 +120,7 @@ private:
 	int step[MAX_NODES][MAX_NODES];
 
 	void init_sim_matrix();
+#endif
 	// ==================================================
 
 public:
@@ -133,7 +133,6 @@ public:
 
 	// calculate sim_nodes
 	double calc_sim_nodes(int u, int v, int level); // u from G_a, v from G
-	void calc_sim_nodes_singleth(int u, int v, bool flag=0);
 
 	// match and generate answer pairs
 	void gen_sim_matrix_simranc();
@@ -143,8 +142,10 @@ public:
 	// print most similar nodes to evaluate matrix
 	void print_top_simi();
 
+#ifdef TOPK
 	// maintain the valid topk pairs during sim-calculation
 	void maintain_topk(int);
+#endif
 
 	// print answer pairs
 	void print(FILE *ou);
