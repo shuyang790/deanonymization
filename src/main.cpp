@@ -15,19 +15,7 @@
 
 #define STR_LEN 128
 
-int BASELINE;
-
 int main(int argc, const char * argv[]) {
-
-	if (argc == 2){
-		if (!strcmp(argv[1], "baseline")){
-			BASELINE = 1;
-		}
-		else {
-			fprintf(stderr, "Incorrect argument!\n\n");
-			return 0;
-		}
-	}
 
 	graph *G_a, *G;
 
@@ -52,10 +40,11 @@ int main(int argc, const char * argv[]) {
 	fprintf(stderr, "old ways result generated in `bak_res.txt`.\n");
 #endif
 
-	if (!BASELINE)
+#ifndef BASELINE
 		M->gen_ans_pairs();
-	else
+#else
 		M->gen_ans_pairs_oldway();
+#endif
 	M->print(stdout);
 
     return 0;

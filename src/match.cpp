@@ -9,8 +9,6 @@
 #include "match.hpp"
 #include "match_vars.hpp"
 
-extern int BASELINE;
-
 matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 	for (int i=1; i<=g_a->num_nodes; i++)
 		for (int j=1; j<=g->num_nodes; j++)
@@ -20,9 +18,16 @@ matcher::matcher(class graph * g_a, class graph * g): G_a(g_a), G(g) {
 void matcher::print_top_simi() {
 	FILE *ou = fopen("most_simi.log", "w");
 	for (int i=1, j, k; i<=G_a->num_nodes; i++) {
-		for (j=k=1; k<=G->num_nodes; k++)
-			if (sim_nodes[i][k] > sim_nodes[i][j])
-				j = k;
+#ifdef BASELINE
+			for (j=k=1; k<=G->num_nodes; k++)
+				if (sim_nodes[i][k] > sim_nodes[i][j])
+					j = k;
+#else
+			for (j=1; j<=G_a->num_nodes && !active[i][j]; j++);
+			for (k=j+1; k<=G->num_nodes; k++)
+				if (active[i][k] && sim_nodes[i][k] > sim_nodes[i][j])
+					j = k;
+#endif
 		fprintf(ou, "%d %d\n", i, j);
 	}
 	fclose(ou);
@@ -78,28 +83,27 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 				flag_a.insert(it->u);
 				flag.insert(it->v);
 
-				if (!BASELINE) {
+#ifndef BASELINE
 	                /* ignore inactive pairs */
 		            if (active[it->u][it->v])
 					    w += it->w;
-				}
-				else
+#else
 					w += it->w;
+#endif
 			}
 		}
 	}
 
-    if (!BASELINE){
+#ifndef BASELINE
 		// RoleSim
 		int weight = (int) max(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
                 G->edges[v]->size() + G->rev_edges[v]->size());
 		if (weight > 0)
 			w /= weight;
 		return sim_nodes[u][v] = w * (1 - BETA) + BETA;
-	}
-	else {
+#else
 		return sim_nodes[u][v] = w;
-	}
+#endif
 }
 
 void matcher::maintain_topk(int u) {
@@ -135,12 +139,12 @@ void matcher::maintain_topk(int u) {
 void * calc_sim_nodes_pthread(void * arg) {
 	int idx = *(int*)arg;
 	for (int i=idx+1; i<=MTCR->num_nodes_G_a(); i+=THREAD_POOL_SIZE){
-        if (!BASELINE)
+#ifndef BASELINE
 			MTCR->maintain_topk(i);
-		else {
+#else
 			for (int j=1; j<=MTCR->num_nodes_G(); j++)
 				MTCR->calc_sim_nodes(i, j, 1);
-		}
+#endif
 	}
 	return NULL;
 }
@@ -204,7 +208,7 @@ void matcher::init_sim_matrix() {
                             + min(G_a->rev_edges[i]->size(), G->rev_edges[j]->size()));
             int ma = (int) max(G_a->edges[i]->size() + G_a->rev_edges[i]->size(),
                                      G->edges[j]->size() + G->rev_edges[j]->size());
-            sim_nodes[i][j] = (ma > 0 ? mi / ma : 0);
+            sim_nodes[i][j] = (ma > 0 ? mi / ma : 0) * (1 - BETA) + BETA;
             if (topk[i].size() < SIM_K) {
                 topk[i].push(match_edge(i, j, sim_nodes[i][j]));
                 active[i][j] = 1;
@@ -229,13 +233,13 @@ void matcher::init_sim_matrix() {
 void matcher::gen_sim_matrix_simranc() {
 	clock_t time_start = clock();
 
-	if (!BASELINE)
+#ifndef BASELINE
 	    init_sim_matrix();
-	else {
+#else
 		for (int i=1; i<=G_a->num_nodes; i++)
 			for (int j=1; j<=G->num_nodes; j++)
 				sim_nodes[i][j] = 1;
-	}
+#endif
 
 #if MULTITHREAD
 	for (int i=1; i<=G_a->num_nodes; i++)
@@ -260,15 +264,14 @@ void matcher::gen_sim_matrix_simranc() {
 		for (int i=0; i<THREAD_POOL_SIZE; i++)
 			pthread_join(threads[i], NULL);
 #else
-		if (!BASELINE) {
+#ifndef BASELINE
 			for (int i=1; i<=G_a->num_nodes; i++)
 				maintain_topk(i);
-		}
-		else {
+#else
 			for (int i=1; i<=G_a->num_nodes; i++)
 				for (int j=1; j<-=G->num_nodes; j++)
 					calc_sim_nodes(i, j, 1);
-		}
+#endif
 #endif
 
 		fprintf(stderr, "Round %d processed\n", cT);

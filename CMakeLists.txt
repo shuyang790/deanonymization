@@ -13,4 +13,16 @@ set(SOURCE_FILES
 
 include_directories(.)
 
+# BASELINE switch
+option(BASELINE "Run Baseline Algorithm" OFF)
+if(BASELINE)
+    add_definitions(-DBASELINE)
+endif(BASELINE)
+
+# TOPK switch
+option(TOPK "Maintain only top-k nodes for each node in a graph" ON)
+if(TOPK)
+    add_definitions(-DTOPK)
+endif(TOPK)
+
 add_executable(main ${SOURCE_FILES})

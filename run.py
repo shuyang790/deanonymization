@@ -2,7 +2,7 @@
 from os import system
 from compare import compare
 from sys import argv
-from time import time, localtime, strftime
+from time import time, localtime, strftime, sleep
 
 ISOTIMEFORMAT = '%Y-%m-%d-%X'
 
@@ -10,6 +10,7 @@ def init():
     system("(cd databuilder; mkdir bin; mkdir data)")
     system("(cd databuilder; make bins)")
     system("mkdir result")
+    system("mkdir data")
 
 def clean():
     system("(cd databuilder; rm -rf data; rm -rf bin)")
@@ -25,6 +26,7 @@ def gen_graph(method, nodes, overlap):
         f.write("ENCRYPT=" + str(method) + "\n")
         for line in lines[3:]:
             f.write(line)
+    sleep(1)
     system("(cd databuilder; make graph)")
     system("(cd databuilder; mv data/graph1.txt ../data/crawled.txt)")
     system("(cd databuilder; mv data/graphTarget.txt ../data/anonymized.txt)")
