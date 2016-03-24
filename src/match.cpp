@@ -93,7 +93,7 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 #ifndef BASELINE
 #ifdef TOPK
 	                /* ignore inactive pairs */
-		            if (active[it->u][it->v])
+		            //if (active[it->u][it->v])
 					    w += it->w;
 #else
                     w += it->w;
@@ -107,8 +107,8 @@ double matcher::calc_sim_nodes(int u, int v, int level) {
 
 #ifndef BASELINE
 		// RoleSim
-		int weight = (int) max(G_a->edges[u]->size() + G_a->rev_edges[u]->size(),
-                G->edges[v]->size() + G->rev_edges[v]->size());
+		int weight = (int) max(G_a->edges[u]->size(), G->edges[v]->size())
+                + (int) max(G_a->rev_edges[u]->size(), G->rev_edges[v]->size());
 		if (weight > 0)
 			w /= weight;
 		return sim_nodes[u][v] = w * (1 - BETA) + BETA;
@@ -224,8 +224,8 @@ void matcher::init_sim_matrix() {
             step[i][j] = 0;
             int mi = (int) (min(G_a->edges[i]->size(), G->edges[j]->size())
                             + min(G_a->rev_edges[i]->size(), G->rev_edges[j]->size()));
-            int ma = (int) max(G_a->edges[i]->size() + G_a->rev_edges[i]->size(),
-                                     G->edges[j]->size() + G->rev_edges[j]->size());
+            int ma = (int) (max(G_a->edges[i]->size(), G->edges[j]->size())
+                            + max(G_a->rev_edges[i]->size(), G->rev_edges[j]->size()));
             sim_nodes[i][j] = (ma > 0 ? mi / ma : 0) * (1 - BETA) + BETA;
             if (topk[i].size() < SIM_K) {
                 topk[i].push(match_edge(i, j, sim_nodes[i][j]));
@@ -345,11 +345,12 @@ void matcher::gen_ans_pairs() {
 	int * match = new int[MAX_NODES];
 
 #ifdef TOPK
-    // ignore inactive pairs
+    /*// ignore inactive pairs
     for (int i=1; i <= G_a->num_nodes; i++)
         for (int j=1; j <= G->num_nodes; j++)
             if (!active[i][j])
                 sim_nodes[i][j] = 0;
+    */
 #endif
 
 	double TINY = 1e20;
@@ -403,7 +404,7 @@ void matcher::gen_ans_pairs() {
 				for (vector <int> ::iterator j = G->edges[v]->begin();
 						j != G->edges[v]->end(); j++)
 					if (!flag[*j]) {
-						weights[*i][*j] += max(sim_nodes[*i][*j], TINY);
+						weights[*i][*j] += sim_nodes[*i][*j];//max(sim_nodes[*i][*j], TINY);
 						tops[*i].push(make_pair(weights[*i][*j], *j));
 					}
 
@@ -413,7 +414,7 @@ void matcher::gen_ans_pairs() {
 				for (vector <int> ::iterator j = G->rev_edges[v]->begin();
 						j != G->rev_edges[v]->end(); j++)
 					if (!flag[*j]) {
-						weights[*i][*j] += max(sim_nodes[*i][*j], TINY);
+						weights[*i][*j] += sim_nodes[*i][*j];//max(sim_nodes[*i][*j], TINY);
 						tops[*i].push(make_pair(weights[*i][*j], *j));
 					}
 	}

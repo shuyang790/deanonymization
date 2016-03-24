@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <time.h>
 #include <math.h>
 #include <map>
@@ -39,6 +40,9 @@
 
 // RoleSim parameter
 #define BETA 0.15
+
+// Estimated decrease rate of similarities
+#define ALPHA 0.6
 
 // K for topk in simranc stage
 #define SIM_K 100
