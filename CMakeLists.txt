@@ -19,10 +19,10 @@ if(BASELINE)
     add_definitions(-DBASELINE)
 endif(BASELINE)
 
-# TOPK switch
-option(TOPK "Maintain only top-k nodes for each node in a graph" ON)
-if(TOPK)
-    add_definitions(-DTOPK)
-endif(TOPK)
+# ALPHA-ROLESIM++ switch
+option(ALPHA_R "Maintain only top-ALPHA-percent nodes for each node in a graph" ON)
+if(ALPHA_R)
+    add_definitions(-DALPHA_R)
+endif(ALPHA_R)
 
 add_executable(main ${SOURCE_FILES})

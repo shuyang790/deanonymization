@@ -18,10 +18,10 @@ int main(int argc, const char * argv[]) {
 #ifdef BASELINE
 	fprintf(stderr, "De-anonymizing ... version = BASELINE\n");
 #else
-#ifdef TOPK
-	fprintf(stderr, "De-anonymizing ... version = TOPK\n");
+#ifdef ALPHA_R
+	fprintf(stderr, "De-anonymizing ... version = ALPHA-RoleSim++\n");
 #else
-	fprintf(stderr, "De-anonymizing ... version = RoleSim (not TOPK)\n");
+	fprintf(stderr, "De-anonymizing ... version = RoleSim++\n");
 #endif
 #endif
 

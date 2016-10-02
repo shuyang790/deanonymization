@@ -42,10 +42,7 @@
 #define BETA 0.15
 
 // Estimated decrease rate of similarities
-#define ALPHA 0.6
-
-// K for topk in simranc stage
-#define SIM_K 100
+#define ALPHA 0.5
 
 // ======================
 
@@ -115,18 +112,6 @@ private:
 	// priority queues to maintain `weights`
 	priority_queue < pair<double, int> > tops[MAX_NODES];
 
-	// ==================================================
-#ifdef TOPK
-	priority_queue <match_edge, vector<match_edge>, Greater> tmp[MAX_NODES];
-	priority_queue <match_edge, vector<match_edge>, Greater> topk[MAX_NODES];
-	priority_queue <match_edge, vector<match_edge>, Less> left[MAX_NODES];
-	bool active[MAX_NODES][MAX_NODES];
-	int step[MAX_NODES][MAX_NODES];
-
-	void init_sim_matrix();
-#endif
-	// ==================================================
-
 public:
 
 	int num_nodes_G_a() const;
@@ -146,9 +131,8 @@ public:
 	// print most similar nodes to evaluate matrix
 	void print_top_simi();
 
-#ifdef TOPK
-	// maintain the valid topk pairs during sim-calculation
-	void maintain_topk(int);
+#ifdef ALPHA_R
+    void calc_sim_nodes_alpha(int);
 #endif
 
 	// print answer pairs

@@ -7,11 +7,12 @@ from time import time, localtime, strftime, sleep
 ISOTIMEFORMAT = '%Y-%m-%d-%X'
 
 versions = [
-        "topk", "algo", "base"
+        "alpha-rolesim++", "algo", "base"
     ]
 anonymization_name = [
         "naive", "sparsify", "switching"
     ]
+
 
 def init():
     system("(cd databuilder; mkdir bin; mkdir data)")
@@ -19,9 +20,11 @@ def init():
     system("mkdir result")
     system("mkdir data")
 
+
 def clean():
     system("(cd databuilder; rm -rf data; rm -rf bin)")
     system("(cd result; rm -rf *.log)")
+
 
 def gen_graph(method, nodes, overlap):
     print ("Generating graphs ...")
@@ -39,6 +42,7 @@ def gen_graph(method, nodes, overlap):
     system("(cd databuilder; mv data/graphTarget.txt ../data/anonymized.txt)")
     system("(cd databuilder; mv data/pair.txt ../data/pair_a_c.txt)")
 
+
 def extract_res(filename, num_nodes):
     with open(filename, "r") as f:
         lines = f.readlines()
@@ -53,32 +57,33 @@ def extract_res(filename, num_nodes):
             ret[idx-1] = correct
     return ret
 
+
 def run_prog(name, nodes, overlap):
     system("rm -rf build")
     if name == "base":
         system("(mkdir build; cd build; cmake .. -DBASELINE=ON; make)")
     elif name == "algo":
-        system("(mkdir build; cd build; cmake .. -DTOPK=OFF; make)")
-    elif name == "topk":
+        system("(mkdir build; cd build; cmake .. -DALPHA_R=OFF; make)")
+    elif name == "alpha-rolesim++":
         system("(mkdir build; cd build; cmake ..; make)")
 
     print ("\n[Running] `" + name + "` ...")
     start_time = time()
     system("time ./main > result/" + name + "_pair.log")
     end_time = time()
-    compare("result/" + name + "_pair.log", \
-            "data/pair_a_c.txt", \
-            (nodes - overlap) / 2 + overlap, \
-            overlap, \
-            "result/" + name + "_onetime.log", \
+    compare("result/" + name + "_pair.log",
+            "data/pair_a_c.txt",
+            (nodes - overlap) / 2 + overlap,
+            overlap,
+            "result/" + name + "_onetime.log",
             flag=1)
     system("mv most_simi.log result/" + name + "_mostsimi.log")
-    compare("result/" + name + "_mostsimi.log", \
-            "data/pair_a_c.txt", \
-            (nodes - overlap) / 2 + overlap, \
-            overlap, \
-            "result/" + name + "_simires.log", \
-            flag = 1)
+    compare("result/" + name + "_mostsimi.log",
+            "data/pair_a_c.txt",
+            (nodes - overlap) / 2 + overlap,
+            overlap,
+            "result/" + name + "_simires.log",
+            flag=1)
     with open("result/" + name + "_simires.log", "r") as f:
         lines = f.readlines()
     for _line in lines:
@@ -87,17 +92,21 @@ def run_prog(name, nodes, overlap):
             simi_correct = eval(line.split(" ")[1])
 
     ret = {
-            "tot": extract_res("result/" + name + "_onetime.log", (nodes - overlap) / 2 + overlap),
+            "tot": extract_res(
+                "result/" + name + "_onetime.log",
+                (nodes - overlap) / 2 + overlap
+            ),
             "time": end_time - start_time,
             "simi": simi_correct
             }
     return ret
 
+
 def test(method, nodes, overlap):
     gen_graph(method, nodes, overlap)
     ret = {}
     for v in versions:
-        ret[v] = run_prog(v, nodes, overlap) 
+        ret[v] = run_prog(v, nodes, overlap)
     return ret
 
 
@@ -126,7 +135,7 @@ def main():
                 results[v]["tot"][u] += cur_results[v]["tot"][u]
             results[v]["time"] += cur_results[v]["time"]
             results[v]["simi"] += cur_results[v]["simi"]
-       
+
     for v in versions:
         for u in xrange(num_nodes):
             results[v]["tot"][u] /= T
@@ -134,12 +143,12 @@ def main():
         results[v]["simi"] /= T
 
     dirname = strftime(ISOTIMEFORMAT, localtime())\
-            .replace(' ', '-')\
-            .replace(':', '-')
+        .replace(' ', '-')\
+        .replace(':', '-')
     system("mkdir result/%s" % (dirname))
     system('echo "Testing @ %s" > README' % dirname)
     system('echo "%d Cases, %s anonymization, %d nodes in generator, %d overlap nodes"'\
-            % (T, anonymization_name[M], N, O))
+        % (T, anonymization_name[M], N, O))
     for v in versions:
         with open("result/" + dirname + "/" + v + "_ave.res", "w") as f:
             for u in xrange(num_nodes):
@@ -158,12 +167,10 @@ def main():
 
 if __name__ == "__main__":
     if (len(argv) != 5):
-        print ("Usage: run.py [T] [M] [N] [O]")
-        print ("\tT -- number of data sets")
-        print ("\tM -- anonymization method (0-naive, 1-sparsify, 2-switching) ")
-        print ("\tN -- number of nodes in generator")
-        print ("\tO -- number of overlap nodes")
+        print("Usage: run.py [T] [M] [N] [O]")
+        print("\tT -- number of data sets")
+        print("\tM -- anonymization method (0-naive, 1-sparsify, 2-switching)")
+        print("\tN -- number of nodes in generator")
+        print("\tO -- number of overlap nodes")
     else:
         main()
-
-
