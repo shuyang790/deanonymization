@@ -1,5 +1,5 @@
 # De-anonymization
-By Shuyang (And Jialin Liu) | Started @ Sept, 2015
+By Shuyang S (and Jialin L, Yuemei Z) | Started @ Sept, 2015
 ***
 
 ## Contents
